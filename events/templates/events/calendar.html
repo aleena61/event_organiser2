@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Event Calendar</title>
+  <style>
+    body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f9f9f9;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.calendar-container {
+  width: 750px;
+  height: 400px;
+  background: #ffffff;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.calendar-header {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  padding: 10px;
+  background: #007bff;
+  color: white;
+  border-radius: 10px 10px 0 0;
+}
+
+.calendar-header select {
+  border: none;
+  background: #ffffff;
+  color: #007bff;
+  font-size: 16px;
+  padding: 5px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.calendar-grid {
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
+}
+
+.calendar-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  margin-bottom: 5px;
+}
+
+.day-name {
+  text-align: center;
+  font-weight: bold;
+  color: #444;
+  padding: 5px 0;
+}
+
+.calendar-days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  grid-gap: 5px;
+}
+
+.calendar-day {
+  height: 50px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  border: 1px solid #ddd;
+  background: #f4f4f4;
+  border-radius: 5px;
+  font-size: 14px;
+}
+
+.calendar-day.event {
+  background: #007bff;
+  color: white;
+}
+
+.calendar-day:hover {
+  background: #007bff;
+  color: white;
+}
+
+.event-popup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+  width: 300px;
+}
+
+.event-popup.hidden {
+  display: none;
+}
+
+#close-popup {
+  background: #007bff;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+  </style>
+</head>
+<body>
+  <div class="calendar-container">
+    <div class="calendar-header">
+      <!-- Dropdown for Month and Year Selection -->
+      <select id="month-select">
+        {% for month_num, month_name in months %}
+        <option value="{{ month_num }}" {% if month_num == current_month %}selected{% endif %}>{{ month_name }}</option>
+      {% endfor %}
+      </select>
+      <select id="year-select">
+        {% for year in range(1900, 2101) %}
+          <option value="{{ year }}" {% if year == current_year %}selected{% endif %}>{{ year }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="calendar-grid">
+      <!-- Weekday Names -->
+      <div class="calendar-weekdays">
+        <div class="day-name">Sun</div>
+        <div class="day-name">Mon</div>
+        <div class="day-name">Tue</div>
+        <div class="day-name">Wed</div>
+        <div class="day-name">Thu</div>
+        <div class="day-name">Fri</div>
+        <div class="day-name">Sat</div>
+      </div>
+      <!-- Calendar Days -->
+      <div id="calendar-days" class="calendar-days">
+        {% for week in calendar %}
+        <div class="calendar-week">
+          {% for day in week %}
+            <div class="calendar-day{% if events_dict|get_item:day %} event{% endif %}" data-date="{{ year }}-{{ month_num }}-{{ day }}">
+              {{ day }}
+            </div>
+          {% endfor %}
+        </div>
+      {% endfor %}
+    </div>
+    </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="event-details" class="event-popup hidden">
+    <h3>Event Details</h3>
+    <p id="event-description">Click on a date to see events.</p>
+    <button id="close-popup">Close</button>
+  </div>
+
+  <script>
+   const calendarDays = document.getElementById('calendar-days');
+const eventPopup = document.getElementById('event-details');
+const eventDescription = document.getElementById('event-description');
+const closePopup = document.getElementById('close-popup');
+const monthSelect = document.getElementById('month-select');
+const yearSelect = document.getElementById('year-select');
+
+ // This data is passed from Django (events_dict)
+ const events = {{ events_dict|safe }};  // events_dict is passed from the view
+
+
+let currentDate = new Date();
+
+function loadCalendar(date) {
+  const year = date.getFullYear();
+  const month = date.getMonth();
+  calendarDays.innerHTML = '';
+
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+  for (let i = 0; i < firstDay; i++) {
+    calendarDays.innerHTML += `<div class="calendar-day empty"></div>`;
+  }
+
+  for (let day = 1; day <= daysInMonth; day++) {
+    const dayString = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    const hasEvent = events[dayString] ? 'event' : '';
+    calendarDays.innerHTML += `<div class="calendar-day ${hasEvent}" data-date="${dayString}">${day}</div>`;
+  }
+
+  attachDayClickEvent();
+}
+
+function attachDayClickEvent() {
+  document.querySelectorAll('.calendar-day.event').forEach(day => {
+    day.addEventListener('click', (e) => {
+      const date = e.target.getAttribute('data-date');
+      eventDescription.textContent = events[date] || 'No events for this day.';
+      eventPopup.classList.remove('hidden');
+    });
+  });
+}
+
+function populateDropdowns() {
+  const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+  
+  months.forEach((month, index) => {
+    const option = document.createElement('option');
+    option.value = index;
+    option.textContent = month;
+    monthSelect.appendChild(option);
+  });
+
+  for (let year = 1900; year <= 2100; year++) {
+    const option = document.createElement('option');
+    option.value = year;
+    option.textContent = year;
+    yearSelect.appendChild(option);
+  }
+
+  monthSelect.value = currentDate.getMonth();
+  yearSelect.value = currentDate.getFullYear();
+}
+
+function updateCalendarFromDropdowns() {
+  currentDate.setMonth(parseInt(monthSelect.value));
+  currentDate.setFullYear(parseInt(yearSelect.value));
+  loadCalendar(currentDate);
+}
+
+monthSelect.addEventListener('change', updateCalendarFromDropdowns);
+yearSelect.addEventListener('change', updateCalendarFromDropdowns);
+
+closePopup.addEventListener('click', () => {
+  eventPopup.classList.add('hidden');
+});
+
+populateDropdowns();
+loadCalendar(currentDate);
+
+</script>
+
+</body>
+</html>

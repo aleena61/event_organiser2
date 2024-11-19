@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login & Signup</title>
+    <style>
+        /* General Styles */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        /* Container */
+        .container {
+            width: 100%;
+            max-width: 400px;
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #218838;
+        }
+
+        .toggle-form {
+            margin-top: 10px;
+            color: #007bff;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        .toggle-form:hover {
+            color: #0056b3;
+        }
+
+        .or {
+            margin: 20px 0;
+            position: relative;
+            color: #666;
+        }
+
+        .or::before,
+        .or::after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            width: 40%;
+            height: 1px;
+            background: #ccc;
+        }
+
+        .or::before {
+            left: 0;
+        }
+
+        .or::after {
+            right: 0;
+        }
+
+        .social-buttons a {
+            display: block;
+            margin: 10px 0;
+            padding: 12px;
+            text-decoration: none;
+            text-align: center;
+            color: white;
+            border-radius: 5px;
+        }
+
+        .social-buttons a.google {
+            background-color: #dd4b39;
+        }
+
+        .social-buttons a.microsoft {
+            background-color: #0078d4;
+        }
+
+        .social-buttons a.apple {
+            background-color: black;
+        }
+
+        .social-buttons a:hover {
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Login Form -->
+        <div id="login-container">
+            <h1>Welcome back</h1>
+            <form method="POST" action="{% url 'login' %}">
+                {% csrf_token %}
+                <input type="text" name="username" placeholder="Username" required>
+                <input type="password" name="password" placeholder="Password" required>
+                <button type="submit">Login</button>
+            </form>
+            
+            <p>Don't have an account? <span class="toggle-form" onclick="showSignup()">Sign Up</span></p>
+
+            <div class="or">OR</div>
+
+            <div class="social-buttons">
+                <a href="#" class="google">Continue with Google</a>
+                <a href="#" class="microsoft">Continue with Microsoft Account</a>
+                <a href="#" class="apple">Continue with Apple</a>
+            </div>
+        </div>
+
+        <!-- Signup Form -->
+        <div id="signup-container" style="display: none;">
+            <h1>Create your account</h1>
+            <form method="POST" action="{% url 'login' %}">
+                {% csrf_token %}
+                <input type="text" name="username" placeholder="Full Name" required>
+                <input type="email" name="email" placeholder="Email" required>
+                <input type="password" name="password" placeholder="Password" required>
+                <button type="submit">Sign Up</button>
+            </form>
+            
+            <p>Already have an account? <span class="toggle-form" onclick="showLogin()">Login</span></p>
+        </div>
+    </div>
+
+    <script>
+        // Function to show the Signup form
+        function showSignup() {
+            document.getElementById('login-container').style.display = 'none';
+            document.getElementById('signup-container').style.display = 'block';
+        }
+
+        // Function to show the Login form
+        function showLogin() {
+            document.getElementById('signup-container').style.display = 'none';
+            document.getElementById('login-container').style.display = 'block';
+        }
+
+        // Event Listeners for Form Submission
+        document.getElementById('login-form').addEventListener('submit', (e) => {
+            e.preventDefault(); // Prevent form submission
+            const email = document.getElementById('login-email').value;
+            console.log('Login Email:', email);
+            alert('Login Successful!');
+        });
+
+        document.getElementById('signup-form').addEventListener('submit', (e) => {
+            e.preventDefault(); // Prevent form submission
+            const name = document.getElementById('signup-name').value;
+            const email = document.getElementById('signup-email').value;
+            const password = document.getElementById('signup-password').value;
+            console.log('Signup Details:', { name, email, password });
+            alert('Signup Successful!');
+        });
+    </script>
+</body>
+</html>

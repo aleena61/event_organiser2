@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Event</title>
+
+    <!-- Inline CSS -->
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #f4f4f9;
+        }
+        header {
+            background:  #86BBD8;
+            color: white;
+            padding: 1rem;
+            text-align: center;
+        }
+        nav {
+            display: flex;
+            justify-content: space-around;
+            background: #33658A;;
+            color: white;
+            padding: 0.5rem;
+        }
+        nav a {
+            color: white;
+            text-decoration: none;
+        }
+        .form-container {
+            max-width: 800px;
+            margin: 2rem auto;
+            background: white;
+            padding: 2rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .form-group button {
+            background: #33658A;;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .form-group button:hover {
+            background:  #F6AE2D;;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>FESTFEED</h1> </header>
+        <nav>
+            <a href="/">Home</a>
+            <a href="/calendar/">Calendar</a>
+            <a href="/login/">Login</a>
+        </nav>
+    </header>
+
+    <div class="form-container">
+        <h2>Add Event</h2>
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            <!-- Event form fields -->
+            <div class="form-group">
+                <label for="name">Event Name</label>
+                <input type="text" id="name" name="name" required>
+            </div>
+            <div class="form-group">
+                <label for="place">Place</label>
+                <input type="text" id="place" name="place" required>
+            </div>
+            <div class="form-group">
+                <label for="date">Date</label>
+                <input type="date" id="date" name="date" required>
+            </div>
+            <div class="form-group">
+                <label for="description">Description</label>
+                <textarea id="description" name="description" rows="4" required></textarea>
+            </div>
+            <div class="form-group">
+                <label for="photos">Photos/Posters</label>
+                <input type="file" id="photos" name="event_photos" accept="image/*"  multiple>
+            </div>
+            <div class="form-group">
+                <label for="old_photos">Old Photos</label>
+                <input type="file" id="old_photos" name="old_photos" accept="image/*"  multiple>
+            </div>
+
+            <!-- Competitions Section -->
+            <div id="competition-fields">
+                <h3>Competitions</h3>
+                <div class="form-group">
+                    <button type="button" id="add-competition">Add Competition</button>
+                </div>
+            </div>
+
+            <button type="submit">Submit</button>
+        </form>
+    </div>
+
+    <!-- Inline JavaScript -->
+    <script>
+        const competitionFields = document.querySelector('#competition-fields');
+
+        // Function to create a new competition field
+        const createCompetitionField = () => {
+            const competitionDiv = document.createElement('div');
+            competitionDiv.classList.add('form-group', 'competition-group');
+            competitionDiv.innerHTML = `
+                <label for="competition-name">Competition Name</label>
+                <input type="text" name="competitions[][name]" required>
+                <label for="competition-date">Date</label>
+                <input type="date" name="competitions[][date]" required>
+                <label for="competition-place">Place</label>
+                <input type="text" name="competitions[][place]" required>
+                <label for="competition-description">Description</label>
+                <textarea name="competitions[][description]" required></textarea>
+                <button type="button" class="remove-competition">Remove</button>
+            `;
+            competitionFields.appendChild(competitionDiv);
+        };
+
+        // Add event listener to the "Add Competition" button
+        document.querySelector('#add-competition').addEventListener('click', createCompetitionField);
+
+        // Remove competition field
+        competitionFields.addEventListener('click', (e) => {
+            if (e.target.classList.contains('remove-competition')) {
+                e.target.parentElement.remove();
+            }
+        });
+    </script>
+</body>
+</html>

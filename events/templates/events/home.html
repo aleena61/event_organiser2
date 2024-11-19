@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Organizer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kaushan+Script&display=swap" rel="stylesheet">
+    <style>
+        /* Basic Reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            background-color: white;  /* White background */
+        }
+
+        /* Header Section */
+        header {
+            background-color: #86BBD8;  /* Light Blue */
+            color: white;
+            padding: 20px;
+            text-align: center;
+            animation: fadeIn 3s ease-in-out;
+        }
+
+        /* Header Title */
+        header h1 {
+            margin: 0;
+            font-size: 3em;
+            font-family: 'Kaushan Script', cursive;  /* Handwriting font */
+            animation: slideInFromTop 2s ease-out;
+        }
+
+        /* Animation for header text */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideInFromTop {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        /* Navigation Bar */
+        nav {
+            background-color: #33658A;  /* Dark Blue */
+            padding: 15px;
+        }
+
+        nav ul {
+            list-style: none;
+            display: flex;
+            justify-content: center;
+        }
+
+        nav ul li {
+            margin: 0 15px;
+        }
+
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+            font-size: 1.2em;
+            padding: 8px 15px;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+
+        nav ul li a:hover {
+            background-color: #F6AE2D;  /* Bright Yellow */
+        }
+
+        /* Search Bar */
+        .search-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        #search-bar {
+            padding: 10px;
+            width: 300px;
+            font-size: 1em;
+            border: 1px solid #ddd;
+        }
+
+        button {
+            padding: 10px;
+            font-size: 1em;
+            background-color: #F6AE2D;  /* Bright Yellow */
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #86BBD8;  /* Light Blue */
+        }
+
+        /* Events Grid */
+        .events-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            padding: 20px;
+            justify-items: center;
+        }
+
+        .event-card {
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);  /* Shadow effect */
+            transition: transform 0.3s;
+            text-align: center;
+            max-width: 300px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .event-card:hover {
+            transform: scale(1.05);
+        }
+
+        .event-card img {
+            width: 100%;
+            height: auto;
+            object-fit: cover;
+            max-height: 200px;
+        }
+
+        .event-card h2 {
+            margin: 10px 0 5px;  /* Reduced gap between text and image */
+            font-size: 1.5em;
+        }
+
+        .event-card p {
+            color: #555;
+            margin: 5px 0;
+        }
+
+        .view-details {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 5px 10px;
+            background-color: #F6AE2D;  /* Bright Yellow */
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+        }
+
+        .view-details:hover {
+            background-color: #86BBD8;  /* Light Blue */
+        }
+
+        /* Floating Button */
+        .add-event-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #33658A;  /* Dark Blue */
+            color: white;
+            padding: 15px 20px;
+            border-radius: 50%;
+            font-size: 1.5em;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+            transition: background-color 0.3s, transform 0.3s;
+        }
+
+        .add-event-btn:hover {
+            background-color: #F6AE2D;  /* Bright Yellow */
+            transform: scale(1.1);
+        }
+    </style>
+</head>
+<body>
+
+<!-- Header Section -->
+<header>
+    <h1>FESTFEED</h1>
+</header>
+
+<!-- Navigation Bar -->
+<nav>
+    <ul>
+        <li><a href="/">Home</a></li>
+        <li><a href="{% url 'calendar'   %}" >Calendar</a></li>
+        <li><a href="{% url 'login' %}">Login</a></li>
+    </ul>
+</nav>
+
+<!-- Search Bar -->
+<div class="search-container">
+    <input type="text" id="search-bar" placeholder="Search events...">
+    <button onclick="searchEvents()">Search</button>
+</div>
+
+<!-- Events Grid -->
+<div class="events-grid">
+    {% for event in events %}
+        <div class="event-card">
+            <img src="{{ event.first_photo_url }}" alt="{{ event.name }} Image">  <!-- Event Image -->
+            <h2>{{ event.name }}</h2>
+            <p>Place: {{ event.place }}</p>
+            <p>Date: {{ event.date }}</p>
+            <a href="{% url 'event_detail' event.id %}" class="view-details">View Details</a>  <!-- Link to Event Detail -->
+        </div>
+    {% endfor %}
+</div>
+
+<!-- Floating Add Event Button -->
+<button class="add-event-btn" onclick="window.location.href='/add_event/'">+</button>
+
+<script>
+    function searchEvents() {
+        var searchText = document.getElementById('search-bar').value.toLowerCase();
+        var eventCards = document.querySelectorAll('.event-card');
+
+        eventCards.forEach(function(card) {
+            var eventName = card.querySelector('h2').textContent.toLowerCase();
+            var eventPlace = card.querySelector('p').textContent.toLowerCase();
+
+            if (eventName.includes(searchText) || eventPlace.includes(searchText)) {
+                card.style.display = 'block';  // Show the event
+            } else {
+                card.style.display = 'none';   // Hide the event
+            }
+        });
+    }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generated Newsletter for {{ event.name }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        .newsletter {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 30px;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+        .newsletter h2 {
+            font-size: 2em;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .newsletter p {
+            font-size: 1.2em;
+            color: #555;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+        .newsletter .footer {
+            text-align: center;
+            font-size: 1em;
+            color: #999;
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="newsletter">
+    <h2>{{ event.name }}</h2>
+    <p><strong>Location:</strong> {{ event.place }}</p>
+    <p><strong>Date:</strong> {{ event.date }}</p>
+    <div>
+        <strong>Description:</strong>
+        <p>{{ event.description }}</p>
+    </div>
+
+    <hr>
+
+    <div>
+        <h3>Generated Newsletter Content:</h3>
+        <p>{% autoescape off %}{{ newsletter_content|safe }}{% endautoescape %}</p>
+    </div>
+
+    <div class="footer">
+        <p>Thank you for subscribing to our newsletter! Stay tuned for more updates.</p>
+    </div>
+</div>
+
+</body>
+</html>

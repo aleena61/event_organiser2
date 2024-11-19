@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ event.name }} - Event Organizer</title>
+    <style>
+        /* Basic Reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            background-color: #f4f4f4;
+            padding: 0 20px; /* Add padding to both sides */
+        }
+
+        /* Header Section */
+        header {
+            background-color:  #86BBD8;/* Dark Blue */
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 2.5em;
+        }
+
+        /* Navigation Bar */
+        nav {
+            background-color:#33658A; ;
+            padding: 10px;
+            margin-top: 20px;
+        }
+
+        nav ul {
+            list-style: none;
+            display: flex;
+            justify-content: center;
+        }
+
+        nav ul li {
+            margin: 0 20px;
+        }
+
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+            font-size: 1.2em;
+        }
+
+        nav ul li a:hover {
+            text-decoration: underline;
+        }
+
+        /* Event Detail Section */
+        .event-detail {
+            display: grid;
+            grid-template-columns: 1fr 1.5fr;
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        /* Left Part (Image) */
+        .event-image img {
+            width: 100%;
+            height: auto;
+            border-radius: 8px;
+            object-fit: cover;
+            max-height: 300px; /* Limit image height */
+        }
+
+        /* Right Part (Text) */
+        .event-info {
+            font-size: 1.2em;
+        }
+
+        .event-info h2 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .event-info p {
+            margin-bottom: 10px;
+        }
+
+        /* Event Description Section */
+        .event-description {
+            font-size: 1.1em;
+            margin-top: 30px;
+        }
+
+        /* Photos Section */
+        .photos-container {
+            margin-top: 30px;
+            display: flex;
+            overflow-x: scroll;
+            gap: 10px;
+        }
+
+        .photos-container img {
+            width: 200px;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+
+        /* Competitions Section (Card Layout) */
+        .competitions {
+            margin-top: 30px;
+        }
+
+        .competition-card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .competition-card h4 {
+            font-size: 1.5em;
+            margin-bottom: 10px;
+        }
+
+        .competition-card p {
+            font-size: 1.1em;
+            margin-bottom: 10px;
+        }
+
+        /* Button Styles */
+        .btn {
+            display: inline-block;
+            padding: 15px 25px;
+            background-color: #F6AE2D; /* Bright Yellow */
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            margin-top: 30px;
+            font-size: 1.5em;
+            text-align: center;
+        }
+
+        .btn:hover {
+            background-color: #FF521B; /* Bright Orange */
+        }
+
+        /* Old Photos Section */
+        .old-photos {
+            display: none;
+            margin-top: 30px;
+            display: flex;
+            overflow-x: scroll;
+            gap: 10px;
+        }
+
+        .old-photos img {
+            width: 200px;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Header Section -->
+<header>
+    <h1>{{ event.name }}</h1>
+</header>
+
+<!-- Navigation Bar -->
+<nav>
+    <ul>
+        <li><a href="/">Home</a></li>
+        <li><a href="/calendar/">Calendar</a></li>
+        <li><a href="/login/">Login</a></li>
+    </ul>
+</nav>
+
+<!-- Event Detail Section -->
+<div class="event-detail">
+    <!-- Left: Event Image -->
+    <div class="event-image">
+        <img src="{{ event.first_photo_url }}" alt="{{ event.name }}">
+    </div>
+
+    <!-- Right: Event Details -->
+    <div class="event-info">
+        <h2>{{ event.name }}</h2>
+        <p>Place: {{ event.place }}</p>
+        <p>Date: {{ event.date }}</p>
+    </div>
+</div>
+
+<!-- Event Description Section -->
+<div class="event-description">
+    <p>{{ event.description }}</p>
+</div>
+
+<!-- Photos Section -->
+<div class="photos-container">
+    {% for photo in event_photos %}
+        <img src="{{ photo.image.url }}" alt="Event Photo">
+    {% endfor %}
+</div>
+
+<!-- Competitions Section -->
+<div class="competitions">
+    <h3>Competitions</h3>
+    {% for competition in competitions %}
+        <div class="competition-card">
+            <h4>{{ competition.name }}</h4>
+            <p><strong>Place:</strong> {{ competition.place }}</p>
+            <p><strong>Date:</strong> {{ competition.date }}</p>
+            <p>{{ competition.description }}</p>
+        </div>
+    {% endfor %}
+</div>
+
+<!-- Button to View Old Photos -->
+<a href="javascript:void(0);" class="btn" onclick="toggleOldPhotos()">View Old Photos</a>
+
+<!-- Old Photos Section -->
+<div class="old-photos">
+    {% for old_photo in old_photos %}
+        <img src="{{ old_photo.image.url }}" alt="Old Event Photo">
+    {% endfor %}
+</div>
+
+<!-- Button to Create Newsletter -->
+<a href="{% url 'create_newsletter' event.id %}" class="btn">Create Newsletter</a>
+
+<!-- Script for showing old photos -->
+<script>
+    function toggleOldPhotos() {
+        var oldPhotosSection = document.querySelector('.old-photos');
+        oldPhotosSection.style.display = (oldPhotosSection.style.display === 'none' || oldPhotosSection.style.display === '') ? 'flex' : 'none';
+    }
+</script>
+
+</body>
+</html>

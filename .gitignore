@@ -1,0 +1,23 @@
+# Byte-compiled Python files
+*.pyc
+__pycache__/
+
+# Virtual environment directory
+env/
+venv/
+
+# Django secret settings
+*.env
+
+# SQLite database (if used)
+db.sqlite3
+
+# Media files
+media/
+
+# Logs
+*.log
+
+# System files
+.DS_Store
+Thumbs.db
