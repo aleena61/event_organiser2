@@ -15,32 +15,57 @@ from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.http import JsonResponse
-from datetime import datetime
-#genai.configure(api_key="AIzaSyBx731nHQN7dUUT4sAodinK09LmWu5RGRY")
-
-
+from datetime import datetime,timedelta
+from django.db.models import Count
+genai.configure(api_key="AIzaSyBx731nHQN7dUUT4sAodinK09LmWu5RGRY")
 
 def calendar_view(request):
-    # Query all events from the database
-    events = Event.objects.all()
-    
-    # Convert events into a dictionary with the date as the key
-    events_data = {
-        event.date.strftime('%Y-%m-%d'): event.name for event in events
-    }
-    # Get the current month and year for the dropdown menus
     current_date = datetime.now()
     current_month = current_date.month
     current_year = current_date.year
 
-    # Pass events and the current month/year to the template
+    # Calculate the previous and next years
+    prev_year = current_year - 1
+    next_year = current_year + 1
+
+    # Handle month and year query parameters to select any month/year
+    month = request.GET.get('month', current_month)
+    year = request.GET.get('year', current_year)
+
+    # Ensure month and year are integers
+    month = int(month)
+    year = int(year)
+
+    # Calculate the first and last day of the selected month
+    first_day_of_month = datetime(year, month, 1)
+
+    if month == 12:
+        last_day_of_month = datetime(year + 1, 1, 1) - timedelta(days=1)
+    else:
+        last_day_of_month = datetime(year, month + 1, 1) - timedelta(days=1)
+
+    # Get all events in the current month
+    events_in_month = Event.objects.filter(date__range=[first_day_of_month, last_day_of_month])
+
+    # Structure the calendar days with events
+    days_in_month = []
+    for day in range(1, last_day_of_month.day + 1):
+        date = datetime(year, month, day)
+        day_events = events_in_month.filter(date=date)
+        days_in_month.append({
+            'day': day,
+            'events': day_events,
+            'date': date,
+        })
+
     return render(request, 'events/calendar.html', {
-        'events_dict': events_data,
-        'current_month': current_month,
-        'current_year': current_year
+        'days_in_month': days_in_month,
+        'current_month': month,
+        'current_year': year,
+        'prev_year': prev_year,
+        'next_year': next_year,  # Pass previous and next years
     })
-    # Pass the dictionary to the template
-    
+
 
 def add_event(request):
     if request.method == 'POST':
@@ -51,14 +76,23 @@ def add_event(request):
         event_photos = request.FILES.getlist('event_photos')
         old_photos = request.FILES.getlist('old_photos')
 
-        if event_form.is_valid() and competition_form.is_valid():
+        if event_form.is_valid():
             # Save Event
             event = event_form.save()
 
             # Save Competition
-            competition = competition_form.save(commit=False)
-            competition.event = event
-            competition.save()
+            competitions_data = request.POST.getlist('competitions[][name]')
+            if competitions_data:
+                for i in range(len(competitions_data)):
+                    competition = Competition(
+                        event=event,
+                        name=competitions_data[i],
+                        date=request.POST.getlist('competitions[][date]')[i],
+                        place=request.POST.getlist('competitions[][place]')[i],
+                        description=request.POST.getlist('competitions[][description]')[i]
+                    )
+                    competition.save()
+
 
             # Save Event Photos
             for photo in event_photos:
@@ -81,6 +115,7 @@ def add_event(request):
 def home(request):
     events = Event.objects.all()  # Get all events from the database
     return render(request, 'events/home.html', {'events': events})
+
 def event_detail(request, event_id):
     # Fetch the event by ID
     event = get_object_or_404(Event, id=event_id)
