@@ -6,57 +6,174 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Calendar</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Kaushan+Script&display=swap" rel="stylesheet">
     <style>
-        /* Basic styles for the calendar */
-        body {
-            font-family: Arial, sans-serif;
+        /* Basic Reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f9f9f9;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        /* Header Section */
+        header {
+            background: linear-gradient(135deg, #86BBD8, #33658A);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-bottom: 5px solid #F6AE2D;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 3.5em;
+            font-family: 'Kaushan Script', cursive;
+        }
+
+        /* Navigation Bar */
+        nav {
+            background-color: #33658A;
+            padding: 10px 0;
+        }
+        nav ul {
+            list-style: none;
+            display: flex;
+            justify-content: center;
+        }
+
+        nav ul li {
+            margin: 0 15px;
+        }
+
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+            font-size: 1.2em;
+            padding: 10px 20px;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        nav ul li a:hover {
+            background-color: #F6AE2D;
+        }
+
+        /* Tab Section */
+        .tabs {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        .tabs button {
+            padding: 12px 30px;
+            margin: 0 10px;
+            background-color: #33658A;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .tabs button:hover,
+        .tabs button.active {
+            background-color: #F6AE2D;
+            transform: translateY(-3px);
+        }
+
+        /* Tab Content */
+        .tab-content {
+            display: none;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            max-width: 1000px;
+            margin: 0 auto;
+            animation: fadeIn 0.5s;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        /* Calendar Section */
         .calendar-container {
-            max-width: 900px;
+            max-width: 1000px;
             margin: auto;
             text-align: center;
+            padding: 20px;
         }
+
         .calendar {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
-            gap: 10px;
+            gap: 15px;
             margin-top: 20px;
         }
+
         .calendar .day {
-            padding: 20px;
-            text-align: center;
-            background-color: #f4f4f4;
-            border: 1px solid #ccc;
-            border-radius: 5px;
+            padding: 15px;
+            background-color: #fdfdfd;
+            border: 1px solid #ddd;
+            border-radius: 10px;
             position: relative;
-            height: 100px;
+            height: 120px;
             cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
         }
+
         .calendar .day:hover {
-            background-color: #e0e0e0;
+            background-color: #f4f4f4;
+            transform: scale(1.05);
         }
+
         .calendar .day.with-events {
-            background-color: #ffeb3b;
+            background: linear-gradient(135deg, #FFD54F, #FFCA28);
         }
+
         .calendar .day.current-day {
-            background-color: #80deea;
+            background: linear-gradient(135deg, #80deea, #4dd0e1);
+            border: 2px solid #0288d1;
         }
+
         .event-popup {
             position: absolute;
             top: 5px;
             left: 5px;
             background-color: #fff;
-            padding: 5px;
-            font-size: 12px;
+            padding: 10px;
+            font-size: 0.9em;
             color: #333;
             border-radius: 5px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
             display: none;
             z-index: 10;
         }
+
         .calendar .day:hover .event-popup {
             display: block;
         }
+
         .event-count {
             position: absolute;
             top: 50%;
@@ -64,81 +181,137 @@
             transform: translate(-50%, -50%);
             font-size: 14px;
             font-weight: bold;
-            color: #ff5722;
+            color: #d84315;
         }
+
+        /* Navigation */
         .navigation {
             text-align: center;
             margin-bottom: 20px;
         }
-        .navigation button {
+
+        .navigation select {
             padding: 10px;
-            margin: 0 5px;
-            cursor: pointer;
-            background-color: #33658A;
-            color: white;
-            border: none;
+            border: 1px solid #ddd;
             border-radius: 5px;
+            cursor: pointer;
+            background-color: #f5f5f5;
+            transition: all 0.3s ease;
         }
-        .navigation span {
-            font-size: 18px;
-            font-weight: bold;
+
+        .navigation select:hover {
+            background-color: #F6AE2D;
+            color: white;
         }
+
     </style>
 </head>
 <body>
-    <div class="calendar-container">
-        <h1>Calendar</h1>
+    <header>
+        <h1>FESTFEED</h1>
+    </header>
+    <nav>
+        <ul>
+            <li><a href="/">Home</a></li>
+            <li><a href="{% url 'calendar' %}">Calendar</a></li>
+            <li><a href="{% url 'login_view' %}">Login</a></li>
+        </ul>
+    </nav>
+    <div class="tabs">
+        <button class="active" onclick="showTab('general')">General</button>
+        <button onclick="showTab('user-added')">User Added</button>
+    </div>
 
-        <div class="navigation">
-            <!-- Month Navigation -->
-            <form action="" method="get" style="display:inline-block;">
-                <select name="month" onchange="this.form.submit()">
-                    <option value="1" {% if current_month == 1 %}selected{% endif %}>January</option>
-                    <option value="2" {% if current_month == 2 %}selected{% endif %}>February</option>
-                    <option value="3" {% if current_month == 3 %}selected{% endif %}>March</option>
-                    <option value="4" {% if current_month == 4 %}selected{% endif %}>April</option>
-                    <option value="5" {% if current_month == 5 %}selected{% endif %}>May</option>
-                    <option value="6" {% if current_month == 6 %}selected{% endif %}>June</option>
-                    <option value="7" {% if current_month == 7 %}selected{% endif %}>July</option>
-                    <option value="8" {% if current_month == 8 %}selected{% endif %}>August</option>
-                    <option value="9" {% if current_month == 9 %}selected{% endif %}>September</option>
-                    <option value="10" {% if current_month == 10 %}selected{% endif %}>October</option>
-                    <option value="11" {% if current_month == 11 %}selected{% endif %}>November</option>
-                    <option value="12" {% if current_month == 12 %}selected{% endif %}>December</option>
-                </select>
-            </form>
-            <!-- Year Navigation -->
-            
-<form action="" method="get" style="display:inline-block;">
-  <select name="year" onchange="this.form.submit()">
-      <option value="{{ current_year }}" selected>{{ current_year }}</option>
-      <option value="{{ prev_year }}">{{ prev_year }}</option>
-      <option value="{{ next_year }}">{{ next_year }}</option>
-      <!-- Add more years if needed -->
-  </select>
-</form>
+    <!-- Tab Content -->
+    <div id="general" class="tab-content active">
+        <div class="calendar-container">
+            <h2>General Calendar</h2>
 
-        </div>
+            <div class="navigation">
+                <form action="" method="get" style="display:inline-block;">
+                    <select name="month" onchange="this.form.submit()">
+                        <option value="1" {% if current_month == 1 %}selected{% endif %}>January</option>
+                        <option value="2" {% if current_month == 2 %}selected{% endif %}>February</option>
+                        <option value="3" {% if current_month == 3 %}selected{% endif %}>March</option>
+                        <option value="4" {% if current_month == 4 %}selected{% endif %}>April</option>
+                        <option value="5" {% if current_month == 5 %}selected{% endif %}>May</option>
+                        <option value="6" {% if current_month == 6 %}selected{% endif %}>June</option>
+                        <option value="7" {% if current_month == 7 %}selected{% endif %}>July</option>
+                        <option value="8" {% if current_month == 8 %}selected{% endif %}>August</option>
+                        <option value="9" {% if current_month == 9 %}selected{% endif %}>September</option>
+                        <option value="10" {% if current_month == 10 %}selected{% endif %}>October</option>
+                        <option value="11" {% if current_month == 11 %}selected{% endif %}>November</option>
+                        <option value="12" {% if current_month == 12 %}selected{% endif %}>December</option>
+                    </select>
+                </form>
+                <form action="" method="get" style="display:inline-block;">
+                    <select name="year" onchange="this.form.submit()">
+                        <option value="{{ current_year }}" selected>{{ current_year }}</option>
+                        <option value="{{ next_year }}">{{ next_year }}</option>
+                        <option value="{{ prev_year }}">{{ prev_year }}</option>
+                    </select>
+                </form>
+            </div>
 
-        <div class="calendar">
-            {% for day in days_in_month %}
-                <div class="day {% if day.events.count > 0 %}with-events{% endif %} {% if day.date == current_date %}current-day{% endif %}">
-                    <div>{{ day.day }}</div>
-                    <div class="event-count">
-                        {% if day.events.count > 0 %}
-                            {{ day.events.count }} events
-                        {% endif %}
-                    </div>
-                    {% for event in day.events %}
-                        <div class="event-popup">
-                            <strong>{{ event.name }}</strong><br>
-                            <span>{{ event.place }}</span><br>
-                            <a href="{% url 'event_detail' event.id %}">Details</a>
+            <div class="calendar">
+                {% for day in days_in_month %}
+                    <div class="day {% if day.events.count > 0 %}with-events{% endif %} {% if day.date == current_date %}current-day{% endif %}">
+                        <div>{{ day.day }}</div>
+                        <div class="event-count">
+                            {% if day.events.count > 0 %}
+                                {{ day.events.count }} events
+                            {% endif %}
                         </div>
-                    {% endfor %}
-                </div>
-            {% endfor %}
+                        {% for event in day.events %}
+                            <div class="event-popup">
+                                <strong>{{ event.name }}</strong><br>
+                                <span>{{ event.place }}</span><br>
+                                <a href="{% url 'event_detail' event.id %}">Details</a>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endfor %}
+            </div>
         </div>
     </div>
+
+    <div id="user-added" class="tab-content">
+        <div class="calendar-container">
+            <h2>User-Added Calendar</h2>
+            <div class="calendar">
+                {% for day in days_in_month %}
+                    <div class="day {% if day.user_added_events.count > 0 %}with-events{% endif %} {% if day.date == current_date %}current-day{% endif %}">
+                        <div>{{ day.day }}</div>
+                        <div class="event-count">
+                            {% if day.user_added_events.count > 0 %}
+                                {{ day.user_added_events.count }} events
+                            {% endif %}
+                        </div>
+                        {% for event in day.user_added_events %}
+                            <div class="event-popup">
+                                <strong>{{ event.name }}</strong><br>
+                                <span>{{ event.place }}</span><br>
+                                <a href="{% url 'event_detail' event.id %}">Details</a>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.getElementById(tabId).classList.add('active');
+
+            document.querySelectorAll('.tabs button').forEach(button => {
+                button.classList.remove('active');
+            });
+            document.querySelector(`.tabs button[onclick="showTab('${tabId}')"]`).classList.add('active');
+        }
+    </script>
 </body>
 </html>

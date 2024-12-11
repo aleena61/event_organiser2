@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,6 +7,10 @@
     <title>Event Organizer</title>
     <link href="https://fonts.googleapis.com/css2?family=Kaushan+Script&display=swap" rel="stylesheet">
     <style>
+        /* Existing styles (retain everything from your original code) */
+        /* Adding new styles for the new features */
+
+        /* Live Stream Section */
         /* Basic Reset */
         * {
             margin: 0;
@@ -16,37 +21,68 @@
         body {
             font-family: Arial, sans-serif;
             line-height: 1.6;
-            background-color: white;  /* White background */
+            background: linear-gradient(to bottom right, #86BBD8, #F6AE2D);
+            color: #333;
+        }
+
+        /* Loader Animation */
+        #loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        #loader div {
+            width: 20px;
+            height: 20px;
+            margin: 5px;
+            background-color: #33658A;
+            border-radius: 50%;
+            animation: bounce 1.5s infinite ease-in-out;
+        }
+
+        #loader div:nth-child(2) {
+            animation-delay: 0.3s;
+        }
+
+        #loader div:nth-child(3) {
+            animation-delay: 0.6s;
+        }
+
+        @keyframes bounce {
+            0%, 80%, 100% {
+                transform: scale(0);
+            }
+            40% {
+                transform: scale(1);
+            }
         }
 
         /* Header Section */
         header {
-            background-color: #86BBD8;  /* Light Blue */
-            color: white;
+            background-color: rgba(255, 255, 255, 0.9);
+            color: #33658A;
             padding: 20px;
             text-align: center;
-            animation: fadeIn 3s ease-in-out;
+            position: relative;
+            animation: fadeInDown 2s ease-out;
         }
 
-        /* Header Title */
         header h1 {
             margin: 0;
             font-size: 3em;
-            font-family: 'Kaushan Script', cursive;  /* Handwriting font */
-            animation: slideInFromTop 2s ease-out;
+            font-family: 'Kaushan Script', cursive;
+            animation: pulse 1.5s infinite;
         }
 
-        /* Animation for header text */
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
-            to {
-                opacity: 1;
-            }
-        }
-
-        @keyframes slideInFromTop {
+        @keyframes fadeInDown {
             from {
                 transform: translateY(-50px);
                 opacity: 0;
@@ -56,10 +92,24 @@
                 opacity: 1;
             }
         }
-        /* Navigation Bar */
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+        }
+
+        /* Navigation */
         nav {
-            background-color: #33658A;  /* Dark Blue */
-            padding: 15px;
+            background-color: rgba(51, 101, 138, 0.9);
+            position: sticky;
+            top: 0;
+            padding: 10px 0;
+            z-index: 999;
+            animation: slideIn 2s ease-out;
         }
 
         nav ul {
@@ -76,41 +126,61 @@
             color: white;
             text-decoration: none;
             font-size: 1.2em;
-            padding: 8px 15px;
+            padding: 10px 20px;
             border-radius: 4px;
-            transition: background-color 0.3s;
+            transition: background-color 0.3s, transform 0.3s;
         }
 
         nav ul li a:hover {
-            background-color: #F6AE2D;  /* Bright Yellow */
+            background-color: #F6AE2D;
+            transform: scale(1.1);
         }
 
-        /* Search Bar */
+        @keyframes slideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* Search Section */
         .search-container {
             text-align: center;
             margin: 20px 0;
+            animation: fadeIn 2s ease-in-out;
         }
 
-        #search-bar {
+        #search-bar, #filter-option {
             padding: 10px;
-            width: 300px;
             font-size: 1em;
             border: 1px solid #ddd;
+            border-radius: 5px;
+            transition: border-color 0.3s;
+        }
+
+        #search-bar:focus, #filter-option:focus {
+            border-color: #F6AE2D;
+            outline: none;
         }
 
         button {
-            padding: 10px;
+            padding: 10px 15px;
             font-size: 1em;
-            background-color: #F6AE2D;  /* Bright Yellow */
+            background-color: #F6AE2D;
             color: white;
             border: none;
             cursor: pointer;
             border-radius: 4px;
-            transition: background-color 0.3s;
+            transition: background-color 0.3s, transform 0.3s;
         }
 
         button:hover {
-            background-color: #86BBD8;  /* Light Blue */
+            background-color: #86BBD8;
+            transform: scale(1.05);
         }
 
         /* Events Grid */
@@ -123,131 +193,247 @@
         }
 
         .event-card {
-            background: #fff;
-            border: 1px solid #ddd;
+            background: white;
             border-radius: 8px;
             overflow: hidden;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);  /* Shadow effect */
-            transition: transform 0.3s;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s, box-shadow 0.3s;
             text-align: center;
-            max-width: 300px;
-            width: 100%;
-            display: flex;
-            flex-direction: column;
         }
 
         .event-card:hover {
             transform: scale(1.05);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
         }
 
         .event-card img {
             width: 100%;
-            height: auto;
+            height: 200px;
             object-fit: cover;
-            max-height: 200px;
         }
 
         .event-card h2 {
-            margin: 10px 0 5px;  /* Reduced gap between text and image */
-            font-size: 1.5em;
-        }
-
-        .event-card p {
-            color: #555;
-            margin: 5px 0;
+            margin: 10px 0;
+            color: #33658A;
         }
 
         .view-details {
             display: inline-block;
-            margin-top: 10px;
-            padding: 5px 10px;
-            background-color: #F6AE2D;  /* Bright Yellow */
+            margin: 10px 0;
+            padding: 8px 15px;
+            background-color: #F6AE2D;
             color: white;
             text-decoration: none;
             border-radius: 4px;
+            transition: background-color 0.3s, transform 0.3s;
         }
 
         .view-details:hover {
-            background-color: #86BBD8;  /* Light Blue */
+            background-color: #33658A;
+            transform: scale(1.1);
         }
 
-        /* Floating Button */
+        /* Add Event Button */
         .add-event-btn {
             position: fixed;
             bottom: 20px;
             right: 20px;
-            background-color: #33658A;  /* Dark Blue */
+            background-color: #33658A;
             color: white;
-            padding: 15px 20px;
+            padding: 15px;
             border-radius: 50%;
             font-size: 1.5em;
-            border: none;
-            cursor: pointer;
-            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
             transition: background-color 0.3s, transform 0.3s;
         }
 
         .add-event-btn:hover {
-            background-color: #F6AE2D;  /* Bright Yellow */
+            background-color: #F6AE2D;
             transform: scale(1.1);
+        }
+        .live-stream-section {
+            margin: 20px;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .live-stream-video {
+            width: 100%;
+            max-width: 800px;
+            height: 450px;
+            border: none;
+            border-radius: 8px;
+        }
+
+        /* Newsletter Section */
+        .newsletter-section {
+            text-align: center;
+            margin: 20px 0;
+            padding: 20px;
+            background: #f4f4f4;
+            border-radius: 8px;
+        }
+
+        .newsletter-section input {
+            padding: 10px;
+            font-size: 1em;
+            width: 250px;
+            margin: 10px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+
+        /* Map Section */
+        .map-container {
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .map {
+            width: 100%;
+            max-width: 600px;
+            height: 300px;
+            border: none;
+            border-radius: 8px;
+        }
+
+        /* Comparison Section */
+        .comparison-section {
+            margin: 20px 0;
+            text-align: center;
+            padding: 20px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px auto;
+            max-width: 800px;
+        }
+
+        .comparison-table th, .comparison-table td {
+            padding: 10px;
+            border: 1px solid #ddd;
+        }
+
+        .comparison-table th {
+            background: #33658A;
+            color: white;
         }
     </style>
 </head>
 <body>
+<!-- Loader -->
+<div id="loader">
+    <div></div>
+    <div></div>
+    <div></div>
+</div>
 
-<!-- Header Section -->
+<!-- Header -->
 <header>
     <h1>FESTFEED</h1>
 </header>
 
-<!-- Navigation Bar -->
+<!-- Navigation -->
 <nav>
     <ul>
         <li><a href="/">Home</a></li>
-        <li><a href="{% url 'calendar'   %}" >Calendar</a></li>
-        <li><a href="{% url 'login' %}">Login</a></li>
+        <li><a href="{% url 'calendar' %}">Calendar</a></li>
+        <li><a href="{% url 'login_view' %}">Login</a></li>
     </ul>
 </nav>
 
-<!-- Search Bar -->
+<!-- Search -->
 <div class="search-container">
     <input type="text" id="search-bar" placeholder="Search events...">
+    <select id="filter-option">
+        <option value="all">All</option>
+        <option value="name">Name</option>
+        <option value="place">Place</option>
+        <option value="date">Date</option>
+    </select>
     <button onclick="searchEvents()">Search</button>
 </div>
 
 <!-- Events Grid -->
 <div class="events-grid">
     {% for event in events %}
-        <div class="event-card">
-            <img src="{{ event.first_photo_url }}" alt="{{ event.name }} Image">  <!-- Event Image -->
-            <h2>{{ event.name }}</h2>
-            <p>Place: {{ event.place }}</p>
-            <p>Date: {{ event.date }}</p>
-            <a href="{% url 'event_detail' event.id %}" class="view-details">View Details</a>  <!-- Link to Event Detail -->
-        </div>
+    <div class="event-card">
+        <img src="{{ event.first_photo_url }}" alt="{{ event.name }} Image">
+        <h2>{{ event.name }}</h2>
+        <p>Place: {{ event.place }}</p>
+        <p>Date: {{ event.date }}</p>
+        <a href="{% url 'event_detail' event.id %}" class="view-details">View Details</a>
+        <button onclick="setReminder('{{ event.id }}')">Set Reminder</button>
+        <button onclick="bookmarkEvent('{{ event.id }}')">Bookmark</button>
+    </div>
     {% endfor %}
 </div>
 
-<!-- Floating Add Event Button -->
+<!-- Live Streaming -->
+<div class="live-stream-section">
+    <h2>Live Streaming</h2>
+    <iframe class="live-stream-video" src="https://www.youtube.com/embed/live_stream?channel=YOUR_CHANNEL_ID" allowfullscreen></iframe>
+</div>
+
+<!-- Newsletter Section -->
+<div class="newsletter-section">
+    <h2>Subscribe to our Newsletter</h2>
+    <input type="email" placeholder="Enter your email">
+    <button>Subscribe</button>
+</div>
+
+<!-- Comparison Section -->
+<div class="comparison-section">
+    <h2>Competition Comparison</h2>
+    <table class="comparison-table">
+        <thead>
+            <tr>
+                <th>Competition</th>
+                <th>Prize</th>
+                <th>Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for competition in competitions %}
+            <tr>
+                <td>{{ competition.name }}</td>
+                <td>{{ competition.prize }}</td>
+                <td>{{ competition.date }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Map Section -->
+<div class="map-container">
+    <h2>Event Locations</h2>
+    <iframe class="map" src="https://www.google.com/maps/embed?pb=YOUR_MAP_EMBED_CODE" allowfullscreen></iframe>
+</div>
+
+<!-- Add Event Button -->
 <button class="add-event-btn" onclick="window.location.href='/add_event/'">+</button>
 
 <script>
-    function searchEvents() {
-        var searchText = document.getElementById('search-bar').value.toLowerCase();
-        var eventCards = document.querySelectorAll('.event-card');
+    document.addEventListener("DOMContentLoaded", function () {
+        document.getElementById("loader").style.display = "none";
+    });
 
-        eventCards.forEach(function(card) {
-            var eventName = card.querySelector('h2').textContent.toLowerCase();
-            var eventPlace = card.querySelector('p').textContent.toLowerCase();
+    function setReminder(eventId) {
+        alert("Reminder set for event ID: " + eventId);
+    }
 
-            if (eventName.includes(searchText) || eventPlace.includes(searchText)) {
-                card.style.display = 'block';  // Show the event
-            } else {
-                card.style.display = 'none';   // Hide the event
-            }
-        });
+    function bookmarkEvent(eventId) {
+        alert("Event ID " + eventId + " bookmarked!");
     }
 </script>
-
 </body>
 </html>

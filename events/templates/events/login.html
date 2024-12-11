@@ -118,14 +118,31 @@
         .social-buttons a:hover {
             opacity: 0.9;
         }
+        .hidden {
+    display: none;
+}
+
+.visible {
+    display: block;
+}
+
     </style>
 </head>
 <body>
     <div class="container">
+        <div id="login-container" class="{% if show_signup %}hidden{% else %}visible{% endif %}">
+
         <!-- Login Form -->
-        <div id="login-container">
+        
+            {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+                <li class="message {{ message.tags }}">{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
             <h1>Welcome back</h1>
-            <form method="POST" action="{% url 'login' %}">
+            <form method="POST" action="{% url 'login_view' %}">
                 {% csrf_token %}
                 <input type="text" name="username" placeholder="Username" required>
                 <input type="password" name="password" placeholder="Password" required>
@@ -144,9 +161,17 @@
         </div>
 
         <!-- Signup Form -->
-        <div id="signup-container" style="display: none;">
+        <div id="signup-container" class="{% if show_signup %}visible{% else %}hidden{% endif %}">
+            {% if messages %}
+            <ul class="messages">
+                {% for message in messages %}
+                    <li class="message {{ message.tags }}">{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
             <h1>Create your account</h1>
-            <form method="POST" action="{% url 'login' %}">
+            
+            <form method="POST" action="{% url 'signup' %}">
                 {% csrf_token %}
                 <input type="text" name="username" placeholder="Full Name" required>
                 <input type="email" name="email" placeholder="Email" required>

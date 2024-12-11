@@ -15,6 +15,12 @@ class Event(models.Model):
         if first_photo:  # If a photo exists, return its URL
             return first_photo.image.url
         return '/static/images/event2.jpg' 
+class UserCalendar(models.Model):
+    event = models.ForeignKey(Event, on_delete=models.CASCADE)
+    added_on = models.DateTimeField(auto_now_add=True)  # When the event was added to the calendar
+    
+    def __str__(self):
+        return f"{self.event.name} on {self.event.date}"
 
 class EventPhoto(models.Model):
     event = models.ForeignKey(Event, related_name='photos', on_delete=models.CASCADE)
@@ -39,3 +45,8 @@ class Competition(models.Model):
 
     def __str__(self):
         return self.name
+    
+    
+
+
+    

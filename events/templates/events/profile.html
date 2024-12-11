@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile Page</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kaushan+Script&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet"> 
+    <style>
+        /* Basic Reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            background-color: white;
+        }
+
+        /* Header Section */
+        header {
+            background-color: #86BBD8; /* Light Blue */
+            color: white;
+            padding: 20px;
+            position: relative; /* Position relative for title centering */
+            text-align: center;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        header h1 {
+            margin: 0;
+            font-size: 3em;
+            font-family: 'Kaushan Script', cursive;
+            position: relative;
+            flex: 1;
+            text-align: center;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideInFromTop {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* Navigation Bar */
+        nav {
+            background-color: #33658A;  /* Dark Blue */
+            padding: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        nav ul {
+            list-style: none;
+            display: flex;
+            justify-content: center;
+            padding: 0;
+        }
+
+        nav ul li {
+            margin: 0 15px;
+        }
+
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+            font-size: 1.2em;
+            padding: 8px 15px;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+
+        nav ul li a:hover {
+            background-color: #F6AE2D;  /* Bright Yellow */
+        }
+
+        /* Profile and Notification Icons */
+        .icons-container {
+            display: flex;
+            align-items: center;
+            position: fixed;
+            right: 0px; /* Position icons on the right */
+            top: 8%;
+            gap:25px;
+            transform: translateY(-50%); /* Center icons vertically */
+            z-index: 1000; /* Ensure it's on top of other content */
+            padding: 10px;
+            background-color: transparent;
+        }
+
+        .profile-icon,
+        .notification-icon {
+            background-color: black;
+            border: none;
+            color: white;
+            font-size: 1.5em;
+            padding: 10px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            
+        }
+
+        .profile-icon:hover,
+        .notification-icon:hover {
+            background-color: #827f8b;  /* Bright Yellow */
+        }
+        /* .notification-icon::after {
+            content: "2"; /* Example notification count 
+            position: absolute;
+            top: -17px;
+            right:-20px;
+            background-color: red;
+            color: white;
+            border-radius: 50%;
+            padding: 3px 7px;
+            font-size: 0.9em;
+        } */
+
+        /* Dropdown Menu for Profile */
+        .dropdown {
+            position: absolute;
+            top: 80px;
+            right: 5px;
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            display: none;
+            flex-direction: column;
+            width: 100px;
+            z-index: 900;
+        }
+
+        .dropdown a {
+            padding: 10px;
+            text-decoration: none;
+            color: #333;
+            border-bottom: 1px solid #ddd;
+            transition: background-color 0.3s;
+        }
+
+        .dropdown a:hover {
+            background-color: #558aed;
+            color: white;
+        }
+        button {
+            padding: 10px 15px;
+            font-size: 1em;
+            background-color: #F6AE2D;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background-color 0.3s, transform 0.3s;
+        }
+
+        button:hover {
+            background-color: #86BBD8;
+            transform: scale(1.05);
+        }
+
+        /* Event Grid Section */
+        .events-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            padding: 20px;
+            justify-items: center;
+        }
+
+        .event-card {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s, box-shadow 0.3s;
+            text-align: center;
+        }
+
+        .event-card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .event-card img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+
+        .event-card h2 {
+            margin: 10px 0;
+            color: #33658A;
+        }
+
+        .view-details {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 5px 10px;
+            background-color: #F6AE2D;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+        }
+
+        .view-details:hover {
+            background-color: #86BBD8;
+        }
+        .view-details {
+            display: inline-block;
+            margin: 10px 0;
+            padding: 8px 15px;
+            background-color: #F6AE2D;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: background-color 0.3s, transform 0.3s;
+        }
+
+        .view-details:hover {
+            background-color: #33658A;
+            transform: scale(1.1);
+        }
+
+        /* Add Event Button */
+        .add-event-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #33658A;
+            color: white;
+            padding: 15px;
+            border-radius: 50%;
+            font-size: 1.5em;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            transition: background-color 0.3s, transform 0.3s;
+        }
+
+        .add-event-btn:hover {
+            background-color: #F6AE2D;
+            transform: scale(1.1);
+        }
+
+        /* Floating Add Event Button */
+        .add-event-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #33658A;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 50%;
+            font-size: 1.5em;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+            transition: background-color 0.3s, transform 0.3s;
+        }
+
+        .add-event-btn:hover {
+            background-color: #F6AE2D;
+            transform: scale(1.1);
+        }
+        .profile-container {
+            position: relative;
+        }
+        .profile-icon-container {
+            position: relative;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            overflow: hidden;
+            background-color: #86BBD8; /* Default background */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .profile-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .profile-placeholder {
+            width: 100%;
+            height: 100%;
+            font-size: 1.5em;
+            font-weight: bold;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #33658A; /* Default color for placeholder */
+        }
+        .live-stream-section {
+            margin: 20px;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .live-stream-video {
+            width: 100%;
+            max-width: 800px;
+            height: 450px;
+            border: none;
+            border-radius: 8px;
+        }
+
+        /* Newsletter Section */
+        .newsletter-section {
+            text-align: center;
+            margin: 20px 0;
+            padding: 20px;
+            background: #f4f4f4;
+            border-radius: 8px;
+        }
+
+        .newsletter-section input {
+            padding: 10px;
+            font-size: 1em;
+            width: 250px;
+            margin: 10px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+
+        /* Map Section */
+        .map-container {
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .map {
+            width: 100%;
+            max-width: 600px;
+            height: 300px;
+            border: none;
+            border-radius: 8px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .dropdown {
+            position: absolute;
+            top: 60px;
+            right: 0;
+            background: white;
+            border: 1px solid #ddd;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            display: none;
+            flex-direction: column;
+            width: 150px;
+        }
+
+        .dropdown a {
+            padding: 10px;
+            text-decoration: none;
+            color: #333;
+            border-bottom: 1px solid #ddd;
+            transition: background-color 0.3s;
+        }
+
+        .dropdown a:hover {
+            background-color: #f6ae2d;
+            color: white;
+        }
+        /* Comparison Section */
+        .comparison-section {
+            margin: 20px 0;
+            text-align: center;
+            padding: 20px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px auto;
+            max-width: 800px;
+        }
+
+        .comparison-table th, .comparison-table td {
+            padding: 10px;
+            border: 1px solid #ddd;
+        }
+
+        .comparison-table th {
+            background: #33658A;
+            color: white;
+        }
+
+    </style>
+</head>
+<body>
+
+<!-- Header Section -->
+<header>
+    <h1>FESTFEED</h1>
+
+    <!-- Profile Icon -->
+   
+       <div class="icons-container">
+            <button class="notification-icon">
+                <i class="fa fa-bell"></i>
+            </button>
+            <div class="profile-icon-container" onclick="toggleDropdown()">
+                <img id="profile-image" src="" alt="Profile Image" class="profile-image hidden">
+                <div id="profile-placeholder" class="profile-placeholder"></div>
+            </div>
+            
+            <div id="profile-dropdown" class="dropdown">
+                <a href>Settings</a>
+                <a href="{% url 'logout_view' %}">Logout</a>
+            </div>
+            
+        </div>
+</header>
+
+
+<!-- Navigation Bar -->
+<nav>
+    <ul>
+        <li><a href="/">Home</a></li>
+        <li><a href="{% url 'calendar' %}">Calendar</a></li>
+    
+    </ul>
+    
+</nav>
+
+<!-- Events Grid -->
+<!-- <div class="events-grid">
+    {% for event in events %}
+        <div class="event-card">
+            <img src="{{ event.first_photo_url }}" alt="{{ event.name }} Image"> 
+            <h2>{{ event.name }}</h2>
+            <p>Place: {{ event.place }}</p>
+            <p>Date: {{ event.date }}</p>
+            <a href="{% url 'event_detail' event.id %}" class="view-details">View Details</a>
+        </div>
+    {% endfor %}
+</div> -->
+<!-- Events Grid -->
+<div class="events-grid">
+    {% for event in events %}
+    <div class="event-card">
+        <img src="{{ event.first_photo_url }}" alt="{{ event.name }} Image">
+        <h2>{{ event.name }}</h2>
+        <p>Place: {{ event.place }}</p>
+        <p>Date: {{ event.date }}</p>
+        <a href="{% url 'event_detail' event.id %}" class="view-details">View Details</a>
+        <button onclick="setReminder('{{ event.id }}')">Set Reminder</button>
+        <button onclick="bookmarkEvent('{{ event.id }}')">Bookmark</button>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Live Streaming -->
+<div class="live-stream-section">
+    <h2>Live Streaming</h2>
+    <iframe class="live-stream-video" src="https://www.youtube.com/embed/live_stream?channel=YOUR_CHANNEL_ID" allowfullscreen></iframe>
+</div>
+
+<!-- Newsletter Section -->
+<div class="newsletter-section">
+    <h2>Subscribe to our Newsletter</h2>
+    <input type="email" placeholder="Enter your email">
+    <button>Subscribe</button>
+</div>
+<!-- Floating Add Event Button -->
+<button class="add-event-btn" onclick="window.location.href='/add_event/'">+</button>
+<!-- Comparison Section -->
+<div class="comparison-section">
+    <h2>Competition Comparison</h2>
+    <table class="comparison-table">
+        <thead>
+            <tr>
+                <th>Competition</th>
+                <th>Prize</th>
+                <th>Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for competition in competitions %}
+            <tr>
+                <td>{{ competition.name }}</td>
+                <td>{{ competition.prize }}</td>
+                <td>{{ competition.date }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Map Section -->
+<div class="map-container">
+    <h2>Event Locations</h2>
+    <iframe class="map" src="https://www.google.com/maps/embed?pb=YOUR_MAP_EMBED_CODE" allowfullscreen></iframe>
+</div>
+
+
+<script>
+    function toggleDropdown() {
+        var dropdown = document.getElementById('profile-dropdown');
+        dropdown.style.display = dropdown.style.display === 'flex' ? 'none' : 'flex';
+    }
+
+    function toggleDropdown() {
+        const dropdown = document.getElementById('profile-dropdown');
+        const isVisible = dropdown.style.display === 'flex';
+        dropdown.style.display = isVisible ? 'none' : 'flex';
+    }
+
+    // Close dropdown if user clicks outside of it
+    window.addEventListener('click', function (event) {
+        const dropdown = document.getElementById('profile-dropdown');
+        const profileIcon = document.querySelector('.profile-icon');
+        if (dropdown && !profileIcon.contains(event.target) && !dropdown.contains(event.target)) {
+            dropdown.style.display = 'none';
+        }
+    });
+const userName = "{{user.username}}"; // Replace with the actual username
+const userImageURL = ""; // Replace with the user's image URL if available
+
+document.addEventListener("DOMContentLoaded", () => {
+    const profileImage = document.getElementById("profile-image");
+    const profilePlaceholder = document.getElementById("profile-placeholder");
+
+    if (userImageURL) {
+        // If the user has an image
+        profileImage.src = userImageURL;
+        profileImage.classList.remove("hidden");
+        profilePlaceholder.classList.add("hidden");
+    } else {
+        // If no image, show the initial
+        const initial = userName.charAt(0).toUpperCase();
+        profilePlaceholder.textContent = initial;
+        profileImage.classList.add("hidden");
+        profilePlaceholder.classList.remove("hidden");
+    }
+});
+
+function toggleDropdown() {
+    const dropdown = document.getElementById("profile-dropdown");
+    dropdown.style.display = dropdown.style.display === "flex" ? "none" : "flex";
+}
+
+</script>
+
+</body>
+</html>

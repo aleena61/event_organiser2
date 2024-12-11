@@ -12,6 +12,7 @@ from django.contrib.auth import login, logout
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.http import JsonResponse
@@ -167,68 +168,105 @@ def generate_newsletter(event):
 
 def login_view(request):
     if request.method == 'POST':
-        username = request.POST.get('username')
-        password = request.POST.get('password')
-
-        # Authenticate user
+        username = request.POST['username']
+        password = request.POST['password']
         user = authenticate(request, username=username, password=password)
-
         if user is not None:
-            # Log the user in
             login(request, user)
-            print("User authenticated and logged in")
-            messages.success(request, "Logged in successfully.")
-            return redirect('home')  # Redirect to the home page
+            return redirect('profile')  # Replace 'home' with your desired redirect URL
         else:
-            # Invalid credentials
-            print("Invalid credentials")
-            messages.error(request, "Invalid username or password.")
-
-        # Render the login page
-    return render(request, 'events/login.html')    
+            messages.error(request, 'Invalid username or password.')
+    return render(request, 'events/login.html')
 
 # Signup View
-
+from django.shortcuts import render, redirect
+from django.contrib.auth.models import User
+from django.contrib.auth import authenticate, login
+from django.contrib import messages
 
 def signup_view(request):
     if request.method == 'POST':
-        name = request.POST.get('name')  # Full Name
-        email = request.POST.get('email')  # Email
-        password = request.POST.get('password')  # Password
+        username = request.POST.get('username')  # Match input field name
+        email = request.POST.get('email')
+        password = request.POST.get('password')
 
         # Validate inputs
-        if not name or not email or not password:
+        if not username or not email or not password:
             messages.error(request, "All fields are required.")
-            return redirect('signup')
+            return redirect('signup_view')
 
         # Check if the username or email is already taken
-        if User.objects.filter(username=name).exists():
+        if User.objects.filter(username=username).exists():
             messages.error(request, "Username already exists. Please choose another.")
-            return redirect('signup')
+            return render(request, 'events/login.html', {'show_signup': True})
         elif User.objects.filter(email=email).exists():
             messages.error(request, "Email is already registered. Try logging in.")
-            return redirect('signup')
+            return render(request, 'events/login.html', {'show_signup': True})
 
         # Create the user
         try:
             user = User.objects.create_user(
-                username=name,  # Using `name` as `username`
+                username=username,
                 email=email,
                 password=password
             )
             user.save()
             messages.success(request, "Account created successfully. You can now log in.")
-            return redirect('login')
+            return redirect('login_view')
         except Exception as e:
             messages.error(request, f"An unexpected error occurred: {str(e)}")
-            return redirect('signup')
+            return redirect('signup_view')
 
     # Render signup page for GET requests
-    return render(request, 'events/signup.html')
+    return render(request, 'events/login.html',{'show_signup': False})
+
+
+# def signup_view(request):
+#     if request.method == 'POST':
+#         name = request.POST.get('name')  # Full Name
+#         email = request.POST.get('email')  # Email
+#         password = request.POST.get('password')  # Password
+
+#         # Validate inputs
+#         if not name or not email or not password:
+#             messages.error(request, "All fields are required.")
+#             return redirect('signup')
+
+#         # Check if the username or email is already taken
+#         if User.objects.filter(username=name).exists():
+#             messages.error(request, "Username already exists. Please choose another.")
+#             return redirect('signup')
+#         elif User.objects.filter(email=email).exists():
+#             messages.error(request, "Email is already registered. Try logging in.")
+#             return redirect('signup')
+
+#         # Create the user
+#         try:
+#             user = User.objects.create_user(
+#                 username=name,  # Using name as username
+#                 email=email,
+#                 password=password
+#             )
+#             user.save()
+#             messages.success(request, "Account created successfully. You can now log in.")
+#             return redirect('login')
+#         except Exception as e:
+#             messages.error(request, f"An unexpected error occurred: {str(e)}")
+#             return redirect('signup')
+
+#     # Render signup page for GET requests
+#     return render(request, 'events/signup.html')
 
 # Logout View
 def logout_view(request):
     logout(request)
     messages.success(request, 'You have been logged out.')
-    return redirect('login')
+    return redirect('home')
 
+@login_required
+def profile_view(request):
+    events = Event.objects.all()
+    user = request.user
+    # Get the user's events (or other related data)
+     # This depends on your model structure
+    return render(request, 'events/profile.html', {'events': events,'user':user})
