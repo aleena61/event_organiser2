@@ -452,6 +452,7 @@
     <ul>
         <li><a href="/">Home</a></li>
         <li><a href="{% url 'calendar' %}">Calendar</a></li>
+        <li><a href="{% url 'bookmarked_events' %}">My Bookmarks</a></li>
     
     </ul>
     
@@ -479,7 +480,13 @@
         <p>Date: {{ event.date }}</p>
         <a href="{% url 'event_detail' event.id %}" class="view-details">View Details</a>
         <button onclick="setReminder('{{ event.id }}')">Set Reminder</button>
-        <button onclick="bookmarkEvent('{{ event.id }}')">Bookmark</button>
+        <button onclick="bookmarkEvent('{{ event.id }}', this)">
+            {% if user in event.bookmarked_by.all %}
+                Unbookmark
+            {% else %}
+                Bookmark
+            {% endif %}
+        </button>
     </div>
     {% endfor %}
 </div>
@@ -529,6 +536,30 @@
 
 
 <script>
+    function bookmarkEvent(eventId, button) {
+    fetch(`/bookmark/${eventId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.bookmarked) {
+            button.innerText = 'Unbookmark'; // Update button text
+            alert('Event bookmarked!');
+        } else {
+            button.innerText = 'Bookmark'; // Update button text
+            alert('Bookmark removed!');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred. Please try again.');
+    });
+}
+
     function toggleDropdown() {
         var dropdown = document.getElementById('profile-dropdown');
         dropdown.style.display = dropdown.style.display === 'flex' ? 'none' : 'flex';

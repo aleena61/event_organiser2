@@ -5,7 +5,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from events import views
 from django.contrib.auth import views as auth_views
-
+from django.contrib.auth.views import LoginView
 from django.urls import path, include
 
 
@@ -26,8 +26,9 @@ urlpatterns = [
 
     path('profile/', views.profile_view, name='profile'),
     path('logout/', views.logout_view, name='logout_view'),
-     path('', views.home, name='home'),
-    
+    path('', views.home, name='home'),
+    path('bookmark/<int:event_id>/', views.bookmark_event, name='bookmark_event'),
+    path('bookmarked-events/', views.bookmarked_events, name='bookmarked_events'),
     
 ]
 

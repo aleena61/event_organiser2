@@ -420,12 +420,43 @@
 </div>
 
 <!-- Add Event Button -->
-<button class="add-event-btn" onclick="window.location.href='/add_event/'">+</button>
-
+<button class="add-event-btn" onclick="window.location.href='/login_view/'">+</button>
+<footer>
+    <p>&copy; 2024 FestFeed. Built with &#x2764; by Event Organizers. <a href="/privacy">Privacy</a> | <a href="/terms">Terms</a></p>
+</footer>
 <script>
     document.addEventListener("DOMContentLoaded", function () {
         document.getElementById("loader").style.display = "none";
     });
+    function searchEvents() {
+        var searchText = document.getElementById('search-bar').value.toLowerCase();
+        var filterOption = document.getElementById('filter-option').value;
+        var eventCards = document.querySelectorAll('.event-card');
+
+        eventCards.forEach(function (card) {
+            var eventName = card.querySelector('h2').textContent.toLowerCase();
+            var eventPlace = card.querySelector('p').textContent.toLowerCase();
+            var eventDate = card.querySelector('p:nth-of-type(2)').textContent.toLowerCase();
+
+            let matches = false;
+
+            if (filterOption === 'all') {
+                matches = eventName.includes(searchText) || eventPlace.includes(searchText) || eventDate.includes(searchText);
+            } else if (filterOption === 'name') {
+                matches = eventName.includes(searchText);
+            } else if (filterOption === 'place') {
+                matches = eventPlace.includes(searchText);
+            } else if (filterOption === 'date') {
+                matches = eventDate.includes(searchText);
+            }
+
+            if (matches) {
+                card.style.display = 'block';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    }
 
     function setReminder(eventId) {
         alert("Reminder set for event ID: " + eventId);

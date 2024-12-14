@@ -1,11 +1,20 @@
 # models.py
 from django.db import models
+from django.contrib.auth.models import User
 
 class Event(models.Model):
     name = models.CharField(max_length=100)
     place = models.CharField(max_length=100)
     date = models.DateField()
     description = models.TextField()
+
+    bookmarked_by = models.ManyToManyField(User, related_name="bookmarked_events", blank=True)
+
+    STATUS_CHOICES = [
+        ('pending', 'Pending Approval'),
+        ('approved', 'Approved'),
+    ]
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
 
     def __str__(self):
         return self.name

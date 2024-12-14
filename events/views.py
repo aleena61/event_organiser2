@@ -18,6 +18,7 @@ from django.contrib import messages
 from django.http import JsonResponse
 from datetime import datetime,timedelta
 from django.db.models import Count
+from django.core.mail import send_mail
 genai.configure(api_key="AIzaSyBx731nHQN7dUUT4sAodinK09LmWu5RGRY")
 
 def calendar_view(request):
@@ -67,7 +68,7 @@ def calendar_view(request):
         'next_year': next_year,  # Pass previous and next years
     })
 
-
+@login_required(login_url='login_view')
 def add_event(request):
     if request.method == 'POST':
         event_form = EventForm(request.POST)
@@ -79,6 +80,8 @@ def add_event(request):
 
         if event_form.is_valid():
             # Save Event
+            event = event_form.save(commit=False)
+            event.status = 'pending'  # Default to pending status
             event = event_form.save()
 
             # Save Competition
@@ -211,6 +214,13 @@ def signup_view(request):
                 password=password
             )
             user.save()
+
+            subject = 'Welcome to Festfeed'
+            message = f'Hi {username},\n\nThank you for signing up our platform. We are excited to have you onboard!'
+            from_email = 'festfeed00@gmail.com'  # Replace with your email
+            recipient_list = [email]
+            send_mail(subject, message, from_email, recipient_list)
+            
             messages.success(request, "Account created successfully. You can now log in.")
             return redirect('login_view')
         except Exception as e:
@@ -270,3 +280,22 @@ def profile_view(request):
     # Get the user's events (or other related data)
      # This depends on your model structure
     return render(request, 'events/profile.html', {'events': events,'user':user})
+
+@login_required
+def bookmark_event(request, event_id):
+    event = get_object_or_404(Event, id=event_id)
+    user = request.user
+
+    if event in user.bookmarked_events.all():
+        user.bookmarked_events.remove(event)  # Remove bookmark
+        bookmarked = False
+    else:
+        user.bookmarked_events.add(event)  # Add bookmark
+        bookmarked = True
+
+    return JsonResponse({'bookmarked': bookmarked})
+@login_required
+def bookmarked_events(request):
+    user = request.user
+    events = user.bookmarked_events.all()  # Get all bookmarked events
+    return render(request, 'events/bookmarked_events.html', {'events': events})

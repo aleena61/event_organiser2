@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile Page</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kaushan+Script&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet"> 
+    <style>
+        /* Basic Reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            background-color: white;
+        }
+
+        /* Header Section */
+        header {
+            background-color: #86BBD8; /* Light Blue */
+            color: white;
+            padding: 20px;
+            position: relative; /* Position relative for title centering */
+            text-align: center;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        header h1 {
+            margin: 0;
+            font-size: 3em;
+            font-family: 'Kaushan Script', cursive;
+            position: relative;
+            flex: 1;
+            text-align: center;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideInFromTop {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* Navigation Bar */
+        nav {
+            background-color: #33658A;  /* Dark Blue */
+            padding: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        nav ul {
+            list-style: none;
+            display: flex;
+            justify-content: center;
+            padding: 0;
+        }
+
+        nav ul li {
+            margin: 0 15px;
+        }
+
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+            font-size: 1.2em;
+            padding: 8px 15px;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+
+        nav ul li a:hover {
+            background-color: #F6AE2D;  /* Bright Yellow */
+        }
+
+        /* Profile and Notification Icons */
+        .icons-container {
+            display: flex;
+            align-items: center;
+            position: fixed;
+            right: 0px; /* Position icons on the right */
+            top: 8%;
+            gap:25px;
+            transform: translateY(-50%); /* Center icons vertically */
+            z-index: 1000; /* Ensure it's on top of other content */
+            padding: 10px;
+            background-color: transparent;
+        }
+
+        .profile-icon,
+        .notification-icon {
+            background-color: black;
+            border: none;
+            color: white;
+            font-size: 1.5em;
+            padding: 10px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            
+        }
+
+        .profile-icon:hover,
+        .notification-icon:hover {
+            background-color: #827f8b;  /* Bright Yellow */
+        }
+        /* .notification-icon::after {
+            content: "2"; /* Example notification count 
+            position: absolute;
+            top: -17px;
+            right:-20px;
+            background-color: red;
+            color: white;
+            border-radius: 50%;
+            padding: 3px 7px;
+            font-size: 0.9em;
+        } */
+
+        /* Dropdown Menu for Profile */
+        .dropdown {
+            position: absolute;
+            top: 80px;
+            right: 5px;
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            display: none;
+            flex-direction: column;
+            width: 100px;
+            z-index: 900;
+        }
+
+        .dropdown a {
+            padding: 10px;
+            text-decoration: none;
+            color: #333;
+            border-bottom: 1px solid #ddd;
+            transition: background-color 0.3s;
+        }
+
+        .dropdown a:hover {
+            background-color: #558aed;
+            color: white;
+        }
+        button {
+            padding: 10px 15px;
+            font-size: 1em;
+            background-color: #F6AE2D;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background-color 0.3s, transform 0.3s;
+        }
+
+        button:hover {
+            background-color: #86BBD8;
+            transform: scale(1.05);
+        }
+
+        /* Event Grid Section */
+        .events-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            padding: 20px;
+            justify-items: center;
+        }
+
+        .event-card {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s, box-shadow 0.3s;
+            text-align: center;
+        }
+
+        .event-card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .event-card img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+
+        .event-card h2 {
+            margin: 10px 0;
+            color: #33658A;
+        }
+
+        .view-details {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 5px 10px;
+            background-color: #F6AE2D;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+        }
+
+        .view-details:hover {
+            background-color: #86BBD8;
+        }
+        .view-details {
+            display: inline-block;
+            margin: 10px 0;
+            padding: 8px 15px;
+            background-color: #F6AE2D;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: background-color 0.3s, transform 0.3s;
+        }
+
+        .view-details:hover {
+            background-color: #33658A;
+            transform: scale(1.1);
+        }
+    </style>
+</head>
+<body>
+
+<!-- Header Section -->
+<header>
+    <h1>FESTFEED</h1>
+
+    <!-- Profile Icon -->
+   
+       <div class="icons-container">
+            <button class="notification-icon">
+                <i class="fa fa-bell"></i>
+            </button>
+            <div class="profile-icon-container" onclick="toggleDropdown()">
+                <img id="profile-image" src="" alt="Profile Image" class="profile-image hidden">
+                <div id="profile-placeholder" class="profile-placeholder"></div>
+            </div>
+            
+            <div id="profile-dropdown" class="dropdown">
+                <a href>Settings</a>
+                <a href="{% url 'logout_view' %}">Logout</a>
+            </div>
+            
+        </div>
+</header>
+
+
+<!-- Navigation Bar -->
+<nav>
+    <ul>
+        <li><a href="/">Home</a></li>
+        <li><a href="{% url 'calendar' %}">Calendar</a></li>
+        <li><a href="{% url 'bookmarked_events' %}">My Bookmarks</a></li>
+    </ul>
+    
+</nav>
+
+<h2>My Bookmarked Events</h2>
+<div>
+    {% for event in events %}
+        <div class="event-item">
+            <h3>{{ event.name }}</h3>
+            <p>Date: {{ event.date }}</p>
+            <p>Place: {{ event.place }}</p>
+            <p>{{ event.description }}</p>
+        </div>
+    {% empty %}
+        <p>No bookmarked events yet.</p>
+    {% endfor %}
+</div>
