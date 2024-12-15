@@ -5,29 +5,37 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Add Event</title>
 
+    <!-- Leaflet.js CSS (for map styling) -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    
+    
     <!-- Inline CSS -->
     <style>
         body {
-            font-family: 'Arial', sans-serif;
+            font-family: Arial, sans-serif;
             background: #f4f4f9;
         }
+
         header {
-            background:  #86BBD8;
+            background: #86BBD8;
             color: white;
             padding: 1rem;
             text-align: center;
         }
+
         nav {
             display: flex;
             justify-content: space-around;
-            background: #33658A;;
+            background: #33658A;
             color: white;
             padding: 0.5rem;
         }
+
         nav a {
             color: white;
             text-decoration: none;
         }
+
         .form-container {
             max-width: 800px;
             margin: 2rem auto;
@@ -35,41 +43,70 @@
             padding: 2rem;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
+
         .form-group {
             margin-bottom: 1rem;
         }
+
         .form-group label {
             display: block;
             margin-bottom: 0.5rem;
         }
+
         .form-group input, .form-group textarea {
             width: 100%;
             padding: 0.5rem;
             border: 1px solid #ccc;
             border-radius: 4px;
         }
+
         .form-group button {
-            background: #33658A;;
+            background: #33658A;
             color: white;
             border: none;
             padding: 0.75rem 1.5rem;
             border-radius: 4px;
             cursor: pointer;
         }
+
         .form-group button:hover {
-            background:  #F6AE2D;;
+            background: #F6AE2D;
         }
+
+          /* Button Styles */
+          .btn {
+            display: inline-block;
+            padding: 15px 25px;
+            background-color: #F6AE2D; /* Bright Yellow */
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            margin-top: 30px;
+            font-size: 1.5em;
+            text-align: center;
+        }
+
+        .btn:hover {
+            background-color: #FF521B; /* Bright Orange */
+        }
+
+        #map {
+            height: 400px;
+            width: 100%;
+        }
+
     </style>
 </head>
 <body>
     <header>
-        <h1>FESTFEED</h1> </header>
-        <nav>
-            <a href="/">Home</a>
-            <a href="/calendar/">Calendar</a>
-            <a href="/login/">Login</a>
-        </nav>
+        <h1>FESTFEED</h1>
     </header>
+    
+    <nav>
+        <a href="/">Home</a>
+        <a href="/calendar/">Calendar</a>
+        <a href="/login/">Login</a>
+    </nav>
 
     <div class="form-container">
         <h2>Add Event</h2>
@@ -94,11 +131,30 @@
             </div>
             <div class="form-group">
                 <label for="photos">Photos/Posters</label>
-                <input type="file" id="photos" name="event_photos" accept="image/*"  multiple>
+                <input type="file" id="photos" name="event_photos" accept="image/*" multiple>
             </div>
             <div class="form-group">
                 <label for="old_photos">Old Photos</label>
-                <input type="file" id="old_photos" name="old_photos" accept="image/*"  multiple>
+                <input type="file" id="old_photos" name="old_photos" accept="image/*" multiple>
+            </div>
+            <div class="form-group">
+                <label for="category">Category</label>
+                <select id="category" name="category" required>
+                    <option value="">Select Category</option>
+                    <option value="Music">Music</option>
+                    <option value="Sports">Sports</option>
+                    <option value="Art">Art</option>
+                    <option value="Tech">Tech</option>
+                    <option value="Food">Food</option>
+                </select>
+            </div>
+            <!-- Map for selecting location -->
+            <div class="form-group">
+                <label for="location">Event Location (Click on map to select location)</label>
+                <div id="map"></div>
+                <!-- Hidden fields for storing coordinates -->
+                <input type="hidden" id="latitude" name="latitude" />
+                <input type="hidden" id="longitude" name="longitude" />
             </div>
 
             <!-- Competitions Section -->
@@ -109,15 +165,42 @@
                 </div>
             </div>
 
+           
+
             <button type="submit">Submit</button>
         </form>
     </div>
 
-    <!-- Inline JavaScript -->
+    <!-- Leaflet.js JavaScript (for map functionality) -->
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
     <script>
+        // Create the map
+        var map = L.map('map').setView([10.8505, 76.2711], 10); // Kerala center
+
+        // Add OpenStreetMap tiles to the map
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        // Add a marker when the user clicks on the map
+        map.on('click', function (e) {
+            var lat = e.latlng.lat;
+            var lon = e.latlng.lng;
+
+            // Update the hidden input fields with the coordinates
+            document.getElementById('latitude').value = lat;
+            document.getElementById('longitude').value = lon;
+
+            // Add a marker to the clicked location
+            L.marker([lat, lon]).addTo(map)
+                .bindPopup("Selected Location")
+                .openPopup();
+        });
+
+        // Function to dynamically add competition fields
         const competitionFields = document.querySelector('#competition-fields');
 
-        // Function to create a new competition field
         const createCompetitionField = () => {
             const competitionDiv = document.createElement('div');
             competitionDiv.classList.add('form-group', 'competition-group');

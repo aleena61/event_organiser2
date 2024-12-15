@@ -2,20 +2,42 @@
 from django.db import models
 from django.contrib.auth.models import User
 
+
+    
+
 class Event(models.Model):
+
+    CATEGORY_CHOICES = [
+        ('cultural', 'Cultural'),
+        ('Music', 'Music'),
+        ('Sports', 'Sports'),
+        ('Art', 'Art'),
+        ('Tech', 'Tech'),
+        ('Food', 'Food'),
+    ]
+
     name = models.CharField(max_length=100)
     place = models.CharField(max_length=100)
     date = models.DateField()
     description = models.TextField()
-
+    latitude = models.FloatField(default=0.0)
+    longitude = models.FloatField(default=0.0)
+    newsletter = models.TextField(blank=True, null=True)  # Newsletter field
+    category = models.CharField(max_length=20, choices=CATEGORY_CHOICES, default='cultural')
+    visits = models.IntegerField(default=0)  # New field to track event visits
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="events")  # Link event to user
     bookmarked_by = models.ManyToManyField(User, related_name="bookmarked_events", blank=True)
 
     STATUS_CHOICES = [
-        ('pending', 'Pending Approval'),
-        ('approved', 'Approved'),
+        ('Pending', 'Pending'),
+        ('Approved', 'Approved'),
+        ('Rejected', 'Rejected'),
     ]
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
-
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    requested_approval = models.BooleanField(default=False)
+    delete_requested = models.BooleanField(default=False)
     def __str__(self):
         return self.name
     def first_photo_url(self):
@@ -54,8 +76,8 @@ class Competition(models.Model):
 
     def __str__(self):
         return self.name
-    
-    
 
+    
+ 
 
     

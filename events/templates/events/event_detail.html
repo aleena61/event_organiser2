@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ event.name }} - Event Organizer</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    
     <style>
         /* Basic Reset */
         * {
@@ -16,14 +18,21 @@
             font-family: Arial, sans-serif;
             line-height: 1.6;
             background-color: #f4f4f4;
-            padding: 0 20px; /* Add padding to both sides */
+            padding: 0 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
         }
 
         /* Header Section */
         header {
             background-color:  #86BBD8;/* Dark Blue */
             color: white;
-            padding: 20px;
+            padding: 10px 20px;
+            width: 100%;
             text-align: center;
         }
 
@@ -34,9 +43,11 @@
 
         /* Navigation Bar */
         nav {
-            background-color:#33658A; ;
+            background-color: #33658A;
             padding: 10px;
             margin-top: 20px;
+            width: 100%;
+            text-align: center;
         }
 
         nav ul {
@@ -59,61 +70,56 @@
             text-decoration: underline;
         }
 
-        /* Event Detail Section */
-        .event-detail {
-            display: grid;
-            grid-template-columns: 1fr 1.5fr;
-            gap: 20px;
-            margin-top: 30px;
+        /* Content Sections */
+        .section {
+            display: none;
+            width: 100%;
+            padding: 20px;
+            text-align: center;
         }
 
-        /* Left Part (Image) */
+        .section.active {
+            display: block;
+        }
+
+        /* Section 1 Styles */
+        .event-detail {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            width: 100%;
+        }
+        .event-image {
+    width: 40%; 
+    height:80% 
+    /* 40% width for the left section */
+    
+}
+
         .event-image img {
             width: 100%;
-            height: auto;
+            max-width: 400px;
+            height: 200px;
             border-radius: 8px;
-            object-fit: cover;
-            max-height: 300px; /* Limit image height */
         }
 
-        /* Right Part (Text) */
         .event-info {
+            height: 80%;
+            width: 60%; 
             font-size: 1.2em;
+            margin-left: 20px;
         }
 
-        .event-info h2 {
-            font-size: 2em;
-            margin-bottom: 10px;
+        .event-description{
+            height: 200px;
         }
 
-        .event-info p {
-            margin-bottom: 10px;
-        }
-
-        /* Event Description Section */
-        .event-description {
-            font-size: 1.1em;
-            margin-top: 30px;
-        }
-
-        /* Photos Section */
-        .photos-container {
-            margin-top: 30px;
-            display: flex;
-            overflow-x: scroll;
-            gap: 10px;
-        }
-
-        .photos-container img {
-            width: 200px;
-            height: 150px;
-            object-fit: cover;
-            border-radius: 8px;
-        }
-
-        /* Competitions Section (Card Layout) */
+        /* Section 2 Styles - Competitions Grid */
         .competitions {
-            margin-top: 30px;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            padding: 20px 0;
         }
 
         .competition-card {
@@ -121,43 +127,14 @@
             border-radius: 8px;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
             padding: 20px;
-            margin-bottom: 20px;
         }
 
-        .competition-card h4 {
-            font-size: 1.5em;
-            margin-bottom: 10px;
-        }
-
-        .competition-card p {
-            font-size: 1.1em;
-            margin-bottom: 10px;
-        }
-
-        /* Button Styles */
-        .btn {
-            display: inline-block;
-            padding: 15px 25px;
-            background-color: #F6AE2D; /* Bright Yellow */
-            color: white;
-            text-decoration: none;
-            border-radius: 8px;
-            margin-top: 30px;
-            font-size: 1.5em;
-            text-align: center;
-        }
-
-        .btn:hover {
-            background-color: #FF521B; /* Bright Orange */
-        }
-
-        /* Old Photos Section */
+        /* Section 3 Styles - Old Photos and Newsletter */
         .old-photos {
-            display: none;
-            margin-top: 30px;
             display: flex;
             overflow-x: scroll;
             gap: 10px;
+            margin-bottom: 20px;
         }
 
         .old-photos img {
@@ -166,84 +143,187 @@
             object-fit: cover;
             border-radius: 8px;
         }
+
+        .btn {
+            padding: 10px 20px;
+            background-color: #F6AE2D;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            margin: 10px;
+            font-size: 1em;
+        }
+
+        .btn:hover {
+            background-color: #FF521B;
+        }
+
+        /* Arrow Buttons */
+        .arrows {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .arrow-button {
+            font-size: 2em;
+            background-color: #86BBD8;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            padding: 15px;
+            margin: 0 10px;
+            cursor: pointer;
+        }
+
+        .arrow-button:focus {
+            outline: none;
+        }
+
+        /* Back Button */
+        .back-btn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background-color: #33658A;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
+
+<!-- Back Button -->
+<button class="back-btn" onclick="goBack()">Back</button>
 
 <!-- Header Section -->
 <header>
     <h1>{{ event.name }}</h1>
 </header>
 
-<!-- Navigation Bar -->
-<nav>
-    <ul>
-        <li><a href="/">Home</a></li>
-        <li><a href="/calendar/">Calendar</a></li>
-        <li><a href="/login/">Login</a></li>
-    </ul>
-</nav>
 
-<!-- Event Detail Section -->
-<div class="event-detail">
-    <!-- Left: Event Image -->
-    <div class="event-image">
-        <img src="{{ event.first_photo_url }}" alt="{{ event.name }}">
-    </div>
 
-    <!-- Right: Event Details -->
-    <div class="event-info">
-        <h2>{{ event.name }}</h2>
-        <p>Place: {{ event.place }}</p>
-        <p>Date: {{ event.date }}</p>
-    </div>
-</div>
+<!-- Section 1: Event Details -->
+<div class="section active" id="section1">
+    
 
-<!-- Event Description Section -->
-<div class="event-description">
-    <p>{{ event.description }}</p>
-</div>
-
-<!-- Photos Section -->
-<div class="photos-container">
-    {% for photo in event_photos %}
-        <img src="{{ photo.image.url }}" alt="Event Photo">
-    {% endfor %}
-</div>
-
-<!-- Competitions Section -->
-<div class="competitions">
-    <h3>Competitions</h3>
-    {% for competition in competitions %}
-        <div class="competition-card">
-            <h4>{{ competition.name }}</h4>
-            <p><strong>Place:</strong> {{ competition.place }}</p>
-            <p><strong>Date:</strong> {{ competition.date }}</p>
-            <p>{{ competition.description }}</p>
+    <div class="event-detail">
+        <!-- Left: Event Image -->
+        <div class="event-image">
+            <img src="{{ event.first_photo_url }}" alt="{{ event.name }}">
+            
+            <p>Place: {{ event.place }}</p>
+            <p>Date: {{ event.date }}</p>
+            <p>Category: {{ event.category }}</p>
         </div>
-    {% endfor %}
+         <!-- Right: Event Details -->
+         <div class="event-info">
+            <div class="event-description">
+                <p>{{ event.description }}</p>
+            </div>
+        </div>
+    </div>
+
+       
+            <div class="event-map">
+                <div id="map" style="height: 300px; margin: 20px;"></div>
+            </div>
+        
+        
+    
+
+    
+
+    <!-- Location Map (Using Leaflet.js) -->
+    
+    <div class="photos-container">
+        {% for photo in event_photos %}
+            <img src="{{ photo.image.url }}" alt="Event Photo">
+        {% endfor %}
+    </div>
 </div>
 
-<!-- Button to View Old Photos -->
-<a href="javascript:void(0);" class="btn" onclick="toggleOldPhotos()">View Old Photos</a>
-
-<!-- Old Photos Section -->
-<div class="old-photos">
-    {% for old_photo in old_photos %}
-        <img src="{{ old_photo.image.url }}" alt="Old Event Photo">
-    {% endfor %}
+<!-- Section 2: Competitions -->
+<div class="section" id="section2">
+    <h2>Competitions</h2>
+    <div class="competitions">
+        {% for competition in competitions %}
+            <div class="competition-card">
+                <h4>{{ competition.name }}</h4>
+                <p><strong>Place:</strong> {{ competition.place }}</p>
+                <p><strong>Date:</strong> {{ competition.date }}</p>
+                <p>{{ competition.description }}</p>
+            </div>
+        {% endfor %}
+    </div>
 </div>
 
-<!-- Button to Create Newsletter -->
-<a href="{% url 'create_newsletter' event.id %}" class="btn">Create Newsletter</a>
+<!-- Section 3: Old Photos & Newsletter -->
+<div class="section" id="section3">
+    <h2>Old Photos</h2>
 
-<!-- Script for showing old photos -->
+    <div class="old-photos">
+        {% for old_photo in old_photos %}
+            <img src="{{ old_photo.image.url }}" alt="Old Event Photo">
+        {% endfor %}
+    </div>
+
+    {% if event.newsletter %}
+        <div class="newsletter">
+            <h3>Newsletter</h3>
+            <p>{% autoescape off %}{{ event.newsletter|safe }}{% endautoescape %}</p>
+        </div>
+    {% endif %}
+
+    <div class="action-buttons">
+        {% if user == event.user or user.is_staff %}
+            <a href="{% url 'edit_event' event.id %}" class="btn">Edit Event</a>
+            <a href="{% url 'delete_event' event.id %}" class="btn">Delete Event</a>
+            <a href="{% url 'create_newsletter' event.id %}" class="btn">Create Newsletter</a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Arrow Navigation -->
+<div class="arrows">
+    <button class="arrow-button" onclick="changeSection(-1)">←</button>
+    <button class="arrow-button" onclick="changeSection(1)">→</button>
+</div>
+
+<!-- Leaflet.js Map Initialization -->
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
 <script>
-    function toggleOldPhotos() {
-        var oldPhotosSection = document.querySelector('.old-photos');
-        oldPhotosSection.style.display = (oldPhotosSection.style.display === 'none' || oldPhotosSection.style.display === '') ? 'flex' : 'none';
+    // Leaflet map initialization for event location
+    var map = L.map('map').setView([{{ event.latitude }}, {{ event.longitude }}], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+    L.marker([{{ event.latitude }}, {{ event.longitude }}]).addTo(map);
+
+    let currentSection = 1; // Starting with section 1
+
+    // Change section based on arrow button click
+    function changeSection(direction) {
+        let totalSections = 3; // Total number of sections
+        currentSection += direction;
+        if (currentSection < 1) currentSection = totalSections;
+        if (currentSection > totalSections) currentSection = 1;
+
+        // Hide all sections and display the current one
+        document.querySelectorAll('.section').forEach(section => section.classList.remove('active'));
+        document.getElementById('section' + currentSection).classList.add('active');
+    }
+
+    // Back button functionality (back to the previous page)
+    function goBack() {
+        window.history.back();
     }
 </script>
-
 </body>
 </html>

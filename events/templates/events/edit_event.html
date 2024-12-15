@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Event</title>
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f4f9;
+        }
+
+        header {
+            background: #86BBD8;
+            color: white;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-around;
+            background: #33658A;
+            color: white;
+            padding: 0.5rem;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+        }
+
+        .form-container {
+            max-width: 800px;
+            margin: 2rem auto;
+            background: white;
+            padding: 2rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .form-group button {
+            background: #33658A;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .form-group button:hover {
+            background: #F6AE2D;
+        }
+
+        #map {
+            height: 400px;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>FESTFEED</h1>
+    </header>
+
+    <nav>
+        <a href="/">Home</a>
+        <a href="/calendar/">Calendar</a>
+        <a href="/login/">Login</a>
+    </nav>
+
+    <div class="form-container">
+        <h2>Edit Event: {{ event.name }}</h2>
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ event_form.as_p }}
+
+            <div class="form-group">
+                <label for="location">Event Location (Click on map to select location)</label>
+                <div id="map"></div>
+                <input type="hidden" id="latitude" name="latitude" value="{{ event.latitude }}" />
+                <input type="hidden" id="longitude" name="longitude" value="{{ event.longitude }}" />
+            </div>
+
+            <button type="submit">Submit</button>
+        </form>
+
+        <form method="POST" action="{% url 'delete_event' event_id=event.id %}" style="margin-top: 20px;">
+            {% csrf_token %}
+            <button type="submit" style="background-color: red; color: white;">Delete Event</button>
+        </form>
+    </div>
+
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+    <script>
+        // Initialize the map
+        var map = L.map('map').setView([{{ event.latitude }}, {{ event.longitude }}], 10);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        // Add a marker for the event's location
+        var marker = L.marker([{{ event.latitude }}, {{ event.longitude }}]).addTo(map);
+        marker.bindPopup("{{ event.place }}");
+
+        // Update hidden fields with coordinates when user clicks on map
+        map.on('click', function (e) {
+            var lat = e.latlng.lat;
+            var lon = e.latlng.lng;
+
+            document.getElementById('latitude').value = lat;
+            document.getElementById('longitude').value = lon;
+
+            marker.setLatLng([lat, lon]);
+            marker.bindPopup("Selected Location").openPopup();
+        });
+    </script>
+</body>
+</html>

@@ -5,10 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Profile Page</title>
     <link href="https://fonts.googleapis.com/css2?family=Kaushan+Script&display=swap" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet"> 
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+     
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <style>
-        /* Basic Reset */
-        * {
+         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
@@ -17,39 +18,68 @@
         body {
             font-family: Arial, sans-serif;
             line-height: 1.6;
-            background-color: white;
+            background: linear-gradient(to bottom right, #1E3A8A, #A7C7E7S);
+            color: #333;
+        }
+
+        /* Loader Animation */
+        #loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        #loader div {
+            width: 20px;
+            height: 20px;
+            margin: 5px;
+            background-color: #33658A;
+            border-radius: 50%;
+            animation: bounce 1.5s infinite ease-in-out;
+        }
+
+        #loader div:nth-child(2) {
+            animation-delay: 0.3s;
+        }
+
+        #loader div:nth-child(3) {
+            animation-delay: 0.6s;
+        }
+
+        @keyframes bounce {
+            0%, 80%, 100% {
+                transform: scale(0);
+            }
+            40% {
+                transform: scale(1);
+            }
         }
 
         /* Header Section */
         header {
-            background-color: #86BBD8; /* Light Blue */
-            color: white;
+            background-color: rgba(255, 255, 255, 0.9);
+            color: #1E3A8A;
             padding: 20px;
-            position: relative; /* Position relative for title centering */
             text-align: center;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            position: relative;
+            animation: fadeInDown 2s ease-out;
         }
+
         header h1 {
             margin: 0;
             font-size: 3em;
             font-family: 'Kaushan Script', cursive;
-            position: relative;
-            flex: 1;
-            text-align: center;
+            animation: pulse 1.5s infinite;
         }
 
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
-            to {
-                opacity: 1;
-            }
-        }
-
-        @keyframes slideInFromTop {
+        @keyframes fadeInDown {
             from {
                 transform: translateY(-50px);
                 opacity: 0;
@@ -60,7 +90,14 @@
             }
         }
 
-        /* Navigation Bar */
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+        }
         nav {
             background-color: #33658A;  /* Dark Blue */
             padding: 15px;
@@ -137,36 +174,41 @@
         } */
 
         /* Dropdown Menu for Profile */
-        .dropdown {
-            position: absolute;
-            top: 80px;
-            right: 5px;
-            background-color: white;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            display: none;
-            flex-direction: column;
-            width: 100px;
-            z-index: 900;
+        @keyframes slideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
         }
 
-        .dropdown a {
+        /* Search Section */
+        .search-container {
+            text-align: center;
+            margin: 20px 0;
+            animation: fadeIn 2s ease-in-out;
+        }
+
+        #search-bar, #filter-option {
             padding: 10px;
-            text-decoration: none;
-            color: #333;
-            border-bottom: 1px solid #ddd;
-            transition: background-color 0.3s;
+            font-size: 1em;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            transition: border-color 0.3s;
         }
 
-        .dropdown a:hover {
-            background-color: #558aed;
-            color: white;
+        #search-bar:focus, #filter-option:focus {
+            border-color: #F6AE2D;
+            outline: none;
         }
+
         button {
             padding: 10px 15px;
             font-size: 1em;
-            background-color: #F6AE2D;
+            background-color: ##1E3A8A;
             color: white;
             border: none;
             cursor: pointer;
@@ -175,62 +217,62 @@
         }
 
         button:hover {
-            background-color: #86BBD8;
+            background-color: #A7C7E7;
             transform: scale(1.05);
         }
 
-        /* Event Grid Section */
-        .events-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 20px;
-            padding: 20px;
-            justify-items: center;
-        }
+        .events-container {
+    width: 90%;
+    margin: 0 auto;
+    padding: 20px 0;
+}
 
-        .event-card {
-            background: white;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-            transition: transform 0.3s, box-shadow 0.3s;
-            text-align: center;
-        }
+section {
+    margin-bottom: 40px;
+}
 
-        .event-card:hover {
-            transform: scale(1.05);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
-        }
+h2 {
+    font-size: 24px;
+    color: #333;
+    text-align: center;
+    margin-bottom: 20px;
+}
 
-        .event-card img {
-            width: 100%;
-            height: 200px;
-            object-fit: cover;
-        }
+.events-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+}
 
-        .event-card h2 {
-            margin: 10px 0;
-            color: #33658A;
-        }
+.event-card {
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    width: 300px;
+    padding: 15px;
+    text-align: center;
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s;
+}
 
-        .view-details {
-            display: inline-block;
-            margin-top: 10px;
-            padding: 5px 10px;
-            background-color: #F6AE2D;
-            color: white;
-            text-decoration: none;
-            border-radius: 4px;
-        }
+.event-card img {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 4px;
+    margin-bottom: 10px;
+}
 
-        .view-details:hover {
-            background-color: #86BBD8;
-        }
+.event-card:hover {
+    transform: scale(1.05);
+}
+
         .view-details {
             display: inline-block;
             margin: 10px 0;
             padding: 8px 15px;
-            background-color: #F6AE2D;
+            background-color: #A7C7E7; /* Light blue button */
             color: white;
             text-decoration: none;
             border-radius: 4px;
@@ -238,7 +280,7 @@
         }
 
         .view-details:hover {
-            background-color: #33658A;
+            background-color: #1E3A8A;
             transform: scale(1.1);
         }
 
@@ -247,7 +289,7 @@
             position: fixed;
             bottom: 20px;
             right: 20px;
-            background-color: #33658A;
+            background-color: #1E3A8A; /* Navy blue */
             color: white;
             padding: 15px;
             border-radius: 50%;
@@ -255,31 +297,155 @@
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
             transition: background-color 0.3s, transform 0.3s;
         }
-
-        .add-event-btn:hover {
-            background-color: #F6AE2D;
-            transform: scale(1.1);
-        }
-
-        /* Floating Add Event Button */
-        .add-event-btn {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background-color: #33658A;
+        .login-btn {
+            position: absolute ;
+            top: 50px;
+            right: 5px;
+            background-color: #1E3A8A; /* Navy blue */
             color: white;
-            padding: 15px 20px;
-            border-radius: 50%;
-            font-size: 1.5em;
-            border: none;
-            cursor: pointer;
-            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+            padding: 11px;
+            border-radius: 90%;
+            font-size: 1em;
+            box-shadow: 0 5px 5px rgba(0, 0, 0, 0.2);
             transition: background-color 0.3s, transform 0.3s;
         }
+        .menu-btn {
+            position: absolute ;
+            top: 40px;
+            width: 50px;
+            height: 50px;
+            right: 20px;
+            background-color: #1E3A8A; /* Navy blue */
+            color: white;
+            padding: 11px;
+            border-radius: 10%;
+            font-size: 1.5em;
+            box-shadow: 0 5px 5px rgba(0, 0, 0, 0.2);
+            transition: background-color 0.3s, transform 0.3s;
+        }
+        .menu-container {
+            
+            z-index: 1001; /* Ensure it's above the nav bar */
+        }
 
         .add-event-btn:hover {
-            background-color: #F6AE2D;
+            background-color: #A7C7E7;
             transform: scale(1.1);
+        }
+        .menu-btn:hover {
+            background-color: #A7C7E7;
+            transform: scale(1.1);
+        }
+        .live-stream-section {
+            margin: 20px;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .live-stream-video {
+            width: 100%;
+            max-width: 800px;
+            height: 450px;
+            border: none;
+            border-radius: 8px;
+        }
+
+        /* Newsletter Section */
+        .newsletter-section {
+            text-align: center;
+            margin: 20px 0;
+            padding: 20px;
+            background: #A7C7E7;
+            border-radius: 8px;
+        }
+
+        .newsletter-section input {
+            padding: 10px;
+            font-size: 1em;
+            width: 250px;
+            margin: 10px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            top: 45px; /* Adjust to align under the button */
+            right: 0;
+            background-color: white;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+            z-index: 1001;
+            width: 220px
+        }
+
+        .dropdown-menu a {
+            display: block;
+            padding: 15px 20px;
+            text-decoration: none;
+            text-align: center;
+            color: #1E3A8A; /* Navy blue */
+            font-size: 1em;
+        }
+
+        .dropdown-menu a:hover {
+            background-color: #A7C7E7;
+            color: white;
+        }
+
+
+        /* Map Section */
+        .map-container {
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .map {
+            width: 100%;
+            max-width: 600px;
+            height: 300px;
+            border: none;
+            border-radius: 8px;
+        }
+
+        /* Comparison Section */
+        .comparison-section {
+            margin: 20px 0;
+            text-align: center;
+            padding: 20px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px auto;
+            max-width: 800px;
+        }
+
+        .comparison-table th, .comparison-table td {
+            padding: 10px;
+            border: 1px solid #ddd;
+        }
+
+        .comparison-table th {
+            background: #1E3A8A;
+            color: white;
+        }
+        a {
+            color: #1E3A8A; /* Navy blue links */
+            text-decoration: none;
+        }
+
+        a:hover {
+            color: #A7C7E7; /* Light blue hover */
         }
         .profile-container {
             position: relative;
@@ -315,109 +481,14 @@
             align-items: center;
             background-color: #33658A; /* Default color for placeholder */
         }
-        .live-stream-section {
-            margin: 20px;
-            text-align: center;
-            background: rgba(255, 255, 255, 0.8);
-            border-radius: 8px;
-            padding: 20px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-        }
-
-        .live-stream-video {
+       
+        #map {
+            height: 400px;
             width: 100%;
-            max-width: 800px;
-            height: 450px;
-            border: none;
-            border-radius: 8px;
+            margin: 30px;
+            padding: 30px;
         }
-
-        /* Newsletter Section */
-        .newsletter-section {
-            text-align: center;
-            margin: 20px 0;
-            padding: 20px;
-            background: #f4f4f4;
-            border-radius: 8px;
-        }
-
-        .newsletter-section input {
-            padding: 10px;
-            font-size: 1em;
-            width: 250px;
-            margin: 10px;
-            border-radius: 4px;
-            border: 1px solid #ddd;
-        }
-
-        /* Map Section */
-        .map-container {
-            margin: 20px 0;
-            text-align: center;
-        }
-
-        .map {
-            width: 100%;
-            max-width: 600px;
-            height: 300px;
-            border: none;
-            border-radius: 8px;
-        }
-
-        .hidden {
-            display: none;
-        }
-
-        .dropdown {
-            position: absolute;
-            top: 60px;
-            right: 0;
-            background: white;
-            border: 1px solid #ddd;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            display: none;
-            flex-direction: column;
-            width: 150px;
-        }
-
-        .dropdown a {
-            padding: 10px;
-            text-decoration: none;
-            color: #333;
-            border-bottom: 1px solid #ddd;
-            transition: background-color 0.3s;
-        }
-
-        .dropdown a:hover {
-            background-color: #f6ae2d;
-            color: white;
-        }
-        /* Comparison Section */
-        .comparison-section {
-            margin: 20px 0;
-            text-align: center;
-            padding: 20px;
-            background: #fff;
-            border-radius: 8px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-        }
-
-        .comparison-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 20px auto;
-            max-width: 800px;
-        }
-
-        .comparison-table th, .comparison-table td {
-            padding: 10px;
-            border: 1px solid #ddd;
-        }
-
-        .comparison-table th {
-            background: #33658A;
-            color: white;
-        }
+        
 
     </style>
 </head>
@@ -429,7 +500,7 @@
 
     <!-- Profile Icon -->
    
-       <div class="icons-container">
+       <!-- <div class="icons-container">
             <button class="notification-icon">
                 <i class="fa fa-bell"></i>
             </button>
@@ -443,11 +514,11 @@
                 <a href="{% url 'logout_view' %}">Logout</a>
             </div>
             
-        </div>
+        </div> -->
 </header>
 
 
-<!-- Navigation Bar -->
+<!-- Navigation Bar
 <nav>
     <ul>
         <li><a href="/">Home</a></li>
@@ -456,7 +527,7 @@
     
     </ul>
     
-</nav>
+</nav> -->
 
 <!-- Events Grid -->
 <!-- <div class="events-grid">
@@ -470,9 +541,39 @@
         </div>
     {% endfor %}
 </div> -->
+<!-- Search -->
+<div class="search-container">
+    <input type="text" id="search-bar" placeholder="Search events...">
+    <select id="filter-option">
+        <option value="all">All</option>
+        <option value="name">Name</option>
+        <option value="place">Place</option>
+        <option value="date">Date</option>
+    </select>
+    <button onclick="searchEvents()">Search</button>
+</div>
+<div class="menu-container">
+    <button class="menu-btn" onclick="toggleDropdown()">::</button>
+    <div class="dropdown-menu">
+        <a href="" text-align="left">Hey !</a><br><br>
+        <a href="">Dashboard</a>
+        <a href="/calendar/">Calendar</a>
+        <a href="/bookmarked-events/">Bookmarked Events</a>
+        <a href="/notifications/">Notifications</a>
+        <a href="/help/support/">Help/Support</a>
+        <a href="/about/">About</a>
+        <br>
+        <button class="login-btn" onclick="window.location.href='/logout/'" >
+            To LogOut
+        </button><br>
+    </div>
+</div>
 <!-- Events Grid -->
+ <div class="events-container">
+    <section id="trending-events">
+        <h2>Trending Events</h2>
 <div class="events-grid">
-    {% for event in events %}
+    {% for event in trending_events %}
     <div class="event-card">
         <img src="{{ event.first_photo_url }}" alt="{{ event.name }} Image">
         <h2>{{ event.name }}</h2>
@@ -489,6 +590,31 @@
         </button>
     </div>
     {% endfor %}
+</div>
+
+ <!-- Recently Added Events Section -->
+ <section id="recent-events">
+    <h2>Recently Added Events</h2>
+<div class="events-grid">
+    {% for event in recently_added_events %}
+    <div class="event-card">
+        <img src="{{ event.first_photo_url }}" alt="{{ event.name }} Image">
+        <h2>{{ event.name }}</h2>
+        <p>Place: {{ event.place }}</p>
+        <p>Date: {{ event.date }}</p>
+        <a href="{% url 'event_detail' event.id %}" class="view-details">View Details</a>
+        <button onclick="setReminder('{{ event.id }}')">Set Reminder</button>
+        <button onclick="bookmarkEvent('{{ event.id }}', this)">
+            {% if user in event.bookmarked_by.all %}
+                Unbookmark
+            {% else %}
+                Bookmark
+            {% endif %}
+        </button>
+    </div>
+    {% endfor %}
+</div>
+</section>
 </div>
 
 <!-- Live Streaming -->
@@ -528,14 +654,44 @@
     </table>
 </div>
 
-<!-- Map Section -->
+<!-- Map Section
 <div class="map-container">
     <h2>Event Locations</h2>
     <iframe class="map" src="https://www.google.com/maps/embed?pb=YOUR_MAP_EMBED_CODE" allowfullscreen></iframe>
-</div>
+</div> -->
+<div id="map"></div>
 
+<footer>
+    <p>&copy; 2024 FestFeed. Built with &#x2764; by Event Organizers. <a href="/privacy">Privacy</a> | <a href="/terms">Terms</a></p>
+</footer>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
 <script>
+
+// Initialize the map
+const map = L.map('map').setView([20.5937, 78.9629], 5); // Default view set to India's lat/lon (you can adjust this)
+
+// Add OpenStreetMap Tile Layer
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+}).addTo(map);
+
+{% for event in events %}
+    {% if event.latitude and event.longitude %}
+        // Add marker for each event's location
+        L.marker([{{ event.latitude }}, {{ event.longitude }}])
+            .addTo(map)
+            .bindPopup("<b>{{ event.name }}</b><br>{{ event.place }}<br>{{ event.date }}")
+            .openPopup();
+    {% endif %}
+{% endfor %}
+
+    document.addEventListener("DOMContentLoaded", function () {
+        document.getElementById("loader").style.display = "none";
+    });
+
+
     function bookmarkEvent(eventId, button) {
     fetch(`/bookmark/${eventId}/`, {
         method: 'POST',
@@ -600,11 +756,50 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
-function toggleDropdown() {
-    const dropdown = document.getElementById("profile-dropdown");
-    dropdown.style.display = dropdown.style.display === "flex" ? "none" : "flex";
-}
+function searchEvents() {
+        var searchText = document.getElementById('search-bar').value.toLowerCase();
+        var filterOption = document.getElementById('filter-option').value;
+        var eventCards = document.querySelectorAll('.event-card');
 
+        eventCards.forEach(function (card) {
+            var eventName = card.querySelector('h2').textContent.toLowerCase();
+            var eventPlace = card.querySelector('p').textContent.toLowerCase();
+            var eventDate = card.querySelector('p:nth-of-type(2)').textContent.toLowerCase();
+
+            let matches = false;
+
+            if (filterOption === 'all') {
+                matches = eventName.includes(searchText) || eventPlace.includes(searchText) || eventDate.includes(searchText);
+            } else if (filterOption === 'name') {
+                matches = eventName.includes(searchText);
+            } else if (filterOption === 'place') {
+                matches = eventPlace.includes(searchText);
+            } else if (filterOption === 'date') {
+                matches = eventDate.includes(searchText);
+            }
+
+            if (matches) {
+                card.style.display = 'block';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    }
+    function setReminder(eventId) {
+        alert("Reminder set for event ID: " + eventId);
+    }
+    function toggleDropdown() {
+    const dropdown = document.querySelector('.dropdown-menu');
+    dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+    }
+    window.onclick = function(event) {
+    if (!event.target.matches('.menu-btn')) {
+        const dropdown = document.querySelector('.dropdown-menu');
+        if (dropdown && dropdown.style.display === 'block') {
+            dropdown.style.display = 'none';
+        }
+    }
+    };
 </script>
 
 </body>

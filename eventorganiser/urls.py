@@ -29,6 +29,8 @@ urlpatterns = [
     path('', views.home, name='home'),
     path('bookmark/<int:event_id>/', views.bookmark_event, name='bookmark_event'),
     path('bookmarked-events/', views.bookmarked_events, name='bookmarked_events'),
+    path('event/edit/<int:event_id>/', views.edit_event, name='edit_event'),
+    path('event/delete/<int:event_id>/', views.delete_event, name='delete_event'),
     
 ]
 
