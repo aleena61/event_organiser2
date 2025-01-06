@@ -76,6 +76,10 @@
             width: 100%;
             padding: 20px;
             text-align: center;
+            font-family: Arial, sans-serif;
+            color: #333;
+            background-color: #f9f9f9;
+            
         }
 
         .section.active {
@@ -83,36 +87,132 @@
         }
 
         /* Section 1 Styles */
+        
+
+        /* Event Detail Styling */
         .event-detail {
             display: flex;
+            flex-wrap: wrap; /* Ensure responsiveness for smaller screens */
             justify-content: space-between;
+            gap: 20px;
             margin-bottom: 30px;
-            width: 100%;
         }
-        .event-image {
-    width: 40%; 
-    height:80% 
-    /* 40% width for the left section */
-    
-}
 
+        /* Event Columns */
+        .event-column {
+            flex: 1;
+            min-width: 280px; /* Ensures columns stack on small screens */
+        }
+
+        /* Event Image */
         .event-image img {
             width: 100%;
             max-width: 400px;
-            height: 200px;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 10px;
+        }
+
+        /* Event Info and Description */
+        .event-info, .event-description, .event-contact {
+            background: #fff;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            margin-bottom: 15px;
+        }
+
+        .event-field {
+            margin-bottom: 10px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .event-field strong {
+            color: #007bff;
+        }
+
+        /* Event Map */
+        .event-map {
+            margin: 20px 0;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Photos Container */
+        .photos-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); /* Ensure grid adapts */
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .photo-thumbnail {
+            width: 100%;
+            height: 120px; /* Fixed height for better visibility */
+            object-fit: cover; /* Maintain aspect ratio, center cropped */
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .photo-thumbnail:hover {
+            transform: scale(1.05); /* Slight zoom-in on hover */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Popup Styles */
+        .popup-overlay {
+            display: none; /* Initially hidden */
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8); /* Dark overlay */
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .popup-content {
+            max-width: 90%;
+            max-height: 90%;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .popup-content img {
+            width: 100%;
+            height: auto;
             border-radius: 8px;
         }
 
-        .event-info {
-            height: 80%;
-            width: 60%; 
-            font-size: 1.2em;
-            margin-left: 20px;
+        .popup-overlay.active {
+            display: flex; /* Make popup visible */
         }
 
-        .event-description{
-            height: 200px;
+
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .event-detail {
+                flex-direction: column;
+            }
+
+            .event-column {
+                margin-bottom: 20px;
+            }
+
+            .event-image img {
+                max-width: 100%;
+            }
         }
+
 
         /* Section 2 Styles - Competitions Grid */
         .competitions {
@@ -195,6 +295,44 @@
             border-radius: 8px;
             cursor: pointer;
         }
+
+        .newsletter {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.newsletter h3 {
+    text-align: center;
+    font-size: 1.8em;
+    color: #333;
+    margin-bottom: 15px;
+}
+
+.newspaper {
+    column-count: 2; /* Number of columns */
+    column-gap: 30px; /* Gap between columns */
+    text-align: left;
+    font-family: Georgia, serif; /* A classic newspaper-like font */
+    font-size: 1.1em;
+    line-height: 1.8;
+    color: #555;
+    word-wrap: break-word; /* Prevent words from overflowing */
+}
+
+.newspaper p {
+    margin: 0 0 1em;
+}
+@media (max-width: 768px) {
+    .newspaper {
+        column-count: 1; /* Single column for smaller screens */
+    }
+}
+
     </style>
 </head>
 <body>
@@ -212,22 +350,56 @@
 <!-- Section 1: Event Details -->
 <div class="section active" id="section1">
     
-
+    <!-- Event Details -->
     <div class="event-detail">
-        <!-- Left: Event Image -->
-        <div class="event-image">
-            <img src="{{ event.first_photo_url }}" alt="{{ event.name }}">
-            
-            <p>Place: {{ event.place }}</p>
-            <p>Date: {{ event.date }}</p>
-            <p>Category: {{ event.category }}</p>
-        </div>
-         <!-- Right: Event Details -->
-         <div class="event-info">
-            <div class="event-description">
-                <p>{{ event.description }}</p>
+        <!-- Left Column -->
+        <div class="event-column">
+            <!-- Event Image -->
+            <div class="event-image">
+                <img src="{{ event.first_photo_url }}" alt="{{ event.name }}">
+            </div>
+
+            <!-- Event Info -->
+            <div class="event-info">
+                <div class="event-field">
+                    <strong>Place:</strong> <span>{{ event.place }}</span>
+                </div>
+                <div class="event-field">
+                    <strong>Category:</strong> <span>{{ event.category }}</span>
+                </div>
+                <div class="event-field">
+                    <strong>Date:</strong> 
+                    <span>
+                        {{ event.date }}
+                        {% if event.end_date %}
+                            - {{ event.end_date }}
+                        {% endif %}
+                    </span>
+                </div>
+                <div class="event-field">
+                    <strong>Address:</strong> <span>{{ event.address }}</span>
+                </div>
             </div>
         </div>
+
+         <!-- Right: Event Details -->
+         <div class="event-column">
+             <!-- Event Description -->
+            <div class="event-description">
+                <p>{{ event.description }}</p>
+                
+            </div>
+             <!-- Contact Info -->
+             <div class="event-contact">
+                <strong>Contact Info:</strong>
+                <div class="event-field">
+                    <strong>Phone:</strong> <span>{{ event.phone }}</span>
+                </div>
+                <div class="event-field">
+                    <strong>Email:</strong> <span>{{ event.email }}</span>
+                </div>
+            </div>
+         </div>
     </div>
 
        
@@ -244,9 +416,17 @@
     
     <div class="photos-container">
         {% for photo in event_photos %}
-            <img src="{{ photo.image.url }}" alt="Event Photo">
+            <img src="{{ photo.image.url }}" alt="Event Photo" class="photo-thumbnail" onclick="openImagePopup('{{ photo.image.url }}')">
         {% endfor %}
     </div>
+    
+    <!-- Popup for Enlarged Image -->
+    <div id="image-popup" class="popup-overlay" onclick="closeImagePopup()">
+        <div class="popup-content">
+            <img id="popup-image" src="" alt="Enlarged Photo">
+        </div>
+    </div>
+    
 </div>
 
 <!-- Section 2: Competitions -->
@@ -320,10 +500,36 @@
         document.getElementById('section' + currentSection).classList.add('active');
     }
 
-    // Back button functionality (back to the previous page)
+    <!-- Back Button -->
     function goBack() {
-        window.history.back();
+        // Send a request to check if the user is logged in
+        fetch('/check-login-status/')
+            .then(response => response.json())
+            .then(data => {
+                // Redirect to the URL returned by the server
+                window.location.href = data.redirect_url;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                // Fallback to the home page if there's an error
+                window.location.href = '/';
+            });
     }
+        // Open the image popup
+    function openImagePopup(imageUrl) {
+        const popupOverlay = document.getElementById('image-popup');
+        const popupImage = document.getElementById('popup-image');
+
+        popupImage.src = imageUrl; // Set the popup image source
+        popupOverlay.classList.add('active'); // Show the popup
+    }
+
+    // Close the image popup
+    function closeImagePopup() {
+        const popupOverlay = document.getElementById('image-popup');
+        popupOverlay.classList.remove('active'); // Hide the popup
+    }
+
 </script>
 </body>
 </html>

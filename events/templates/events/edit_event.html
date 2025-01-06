@@ -8,76 +8,139 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background: #f4f4f9;
+            font-family: 'Arial', sans-serif;
+            background: #f9fbfd;
+            margin: 0;
+            padding: 0;
         }
 
         header {
-            background: #86BBD8;
+            background: #0074D9;
             color: white;
-            padding: 1rem;
+            padding: 2rem 1rem;
             text-align: center;
+            font-size: 2.5rem;
+            font-weight: bold;
+            letter-spacing: 1px;
         }
 
         nav {
             display: flex;
-            justify-content: space-around;
-            background: #33658A;
-            color: white;
-            padding: 0.5rem;
+            justify-content: center;
+            background: #005BB5;
+            padding: 1.5rem;
         }
 
         nav a {
             color: white;
             text-decoration: none;
+            margin: 0 3rem;
+            font-size: 1.5rem;
+            font-weight: bold;
+            transition: color 0.3s;
+        }
+
+        nav a:hover {
+            color: #FF851B;
         }
 
         .form-container {
-            max-width: 800px;
-            margin: 2rem auto;
+            max-width: 1000px;
+            margin: 4rem auto;
             background: white;
-            padding: 2rem;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-header {
+            background: #0074D9;
+            color: white;
+            padding: 3rem;
+            font-size: 2rem;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .form-body {
+            padding: 3rem;
         }
 
         .form-group {
-            margin-bottom: 1rem;
+            margin-bottom: 3rem;
         }
 
         .form-group label {
             display: block;
-            margin-bottom: 0.5rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
         }
 
-        .form-group input, .form-group textarea {
+        .form-group input,
+        .form-group textarea {
             width: 100%;
-            padding: 0.5rem;
-            border: 1px solid #ccc;
-            border-radius: 4px;
+            padding: 1.5rem;
+            border: 2px solid #ccc;
+            border-radius: 10px;
+            font-size: 1.5rem;
+            box-sizing: border-box;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            border-color: #0074D9;
+            box-shadow: 0 0 10px rgba(0, 116, 217, 0.2);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            height: 250px;
         }
 
         .form-group button {
-            background: #33658A;
+            width: 100%;
+            background: #0074D9;
             color: white;
             border: none;
-            padding: 0.75rem 1.5rem;
-            border-radius: 4px;
+            padding: 1.5rem;
+            border-radius: 10px;
+            font-size: 1.5rem;
             cursor: pointer;
+            font-weight: bold;
+            transition: background 0.3s;
         }
 
         .form-group button:hover {
-            background: #F6AE2D;
+            background: #FF851B;
+        }
+
+        .form-group button.delete {
+            background: red;
+            margin-top: 2rem;
         }
 
         #map {
-            height: 400px;
-            width: 100%;
+            height: 600px;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 2.5rem;
         }
+
+        footer {
+            text-align: center;
+            padding: 2rem;
+            background: #F5F5F5;
+            font-size: 1.5rem;
+            color: #555;
+        }
+
     </style>
 </head>
 <body>
     <header>
-        <h1>FESTFEED</h1>
+        FESTFEED
     </header>
 
     <nav>
@@ -87,29 +150,40 @@
     </nav>
 
     <div class="form-container">
-        <h2>Edit Event: {{ event.name }}</h2>
-        <form method="POST" enctype="multipart/form-data">
-            {% csrf_token %}
-            {{ event_form.as_p }}
+        <div class="form-header">
+            Edit Event: {{ event.name }}
+        </div>
+        <div class="form-body">
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                {{ event_form.as_p }}
 
-            <div class="form-group">
-                <label for="location">Event Location (Click on map to select location)</label>
-                <div id="map"></div>
-                <input type="hidden" id="latitude" name="latitude" value="{{ event.latitude }}" />
-                <input type="hidden" id="longitude" name="longitude" value="{{ event.longitude }}" />
-            </div>
+                <div class="form-group">
+                    <label for="location">Event Location (Click on map to select location)</label>
+                    <div id="map"></div>
+                    <input type="hidden" id="latitude" name="latitude" value="{{ event.latitude }}" />
+                    <input type="hidden" id="longitude" name="longitude" value="{{ event.longitude }}" />
+                </div>
 
-            <button type="submit">Submit</button>
-        </form>
+                <div class="form-group">
+                    <button type="submit">Save Changes</button>
+                </div>
+            </form>
 
-        <form method="POST" action="{% url 'delete_event' event_id=event.id %}" style="margin-top: 20px;">
-            {% csrf_token %}
-            <button type="submit" style="background-color: red; color: white;">Delete Event</button>
-        </form>
+            <form method="POST" action="{% url 'delete_event' event_id=event.id %}">
+                {% csrf_token %}
+                <div class="form-group">
+                    <button type="submit" class="delete">Delete Event</button>
+                </div>
+            </form>
+        </div>
     </div>
 
-    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <footer>
+        © 2024 FESTFEED. All Rights Reserved.
+    </footer>
 
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script>
         // Initialize the map
         var map = L.map('map').setView([{{ event.latitude }}, {{ event.longitude }}], 10);

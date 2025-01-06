@@ -1,8 +1,28 @@
 # models.py
+from django.core.exceptions import ValidationError
+
 from django.db import models
 from django.contrib.auth.models import User
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
+# User Profile to store location
+class UserProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    latitude = models.FloatField(null=True, blank=True)
+    longitude = models.FloatField(null=True, blank=True)
 
+    def __str__(self):
+        return f"{self.user.username}'s Profile"
+
+@receiver(post_save, sender=User)
+def create_user_profile(sender, instance, created, **kwargs):
+    if created:
+        UserProfile.objects.create(user=instance)
+
+@receiver(post_save, sender=User)
+def save_user_profile(sender, instance, **kwargs):
+    instance.profile.save()
     
 
 class Event(models.Model):
@@ -19,6 +39,8 @@ class Event(models.Model):
     name = models.CharField(max_length=100)
     place = models.CharField(max_length=100)
     date = models.DateField()
+    end_date = models.DateField(null=True, blank=True)
+    address=models.CharField(max_length=100,default="")
     description = models.TextField()
     latitude = models.FloatField(default=0.0)
     longitude = models.FloatField(default=0.0)
@@ -38,6 +60,9 @@ class Event(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     requested_approval = models.BooleanField(default=False)
     delete_requested = models.BooleanField(default=False)
+
+    phone = models.CharField(max_length=100,default="0")
+    email = models.CharField(max_length=100,default="")
     def __str__(self):
         return self.name
     def first_photo_url(self):
@@ -46,6 +71,10 @@ class Event(models.Model):
         if first_photo:  # If a photo exists, return its URL
             return first_photo.image.url
         return '/static/images/event2.jpg' 
+    def clean(self):
+        super().clean()
+        if self.end_date and self.end_date < self.start_date:
+            raise ValidationError("End date cannot be earlier than the start date.")
 class UserCalendar(models.Model):
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
     added_on = models.DateTimeField(auto_now_add=True)  # When the event was added to the calendar
@@ -77,7 +106,12 @@ class Competition(models.Model):
     def __str__(self):
         return self.name
 
-    
+class EventUser(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='eventuser')
+    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='eventuser')
+    visited = models.BooleanField(default=False)
+    bookmarked = models.BooleanField(default=False)
+
  
 
     

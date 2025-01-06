@@ -44,14 +44,55 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
 
+        
+
         .form-group {
-            margin-bottom: 1rem;
+            margin-bottom: 20px;
+            font-family: Arial, sans-serif;
         }
 
         .form-group label {
             display: block;
-            margin-bottom: 0.5rem;
+            font-weight: bold;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: #333;
         }
+
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            font-size: 14px;
+            color: #333;
+            background-color: #f9f9f9;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            outline: none;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+        }
+
+        .form-group select:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 4px rgba(0, 123, 255, 0.5);
+        }
+
+        .form-group select option {
+            padding: 10px;
+            color: #333;
+        }
+
+        /* Add some styling for required validation */
+        .form-group select:invalid {
+            border-color: #dc3545;
+        }
+
+        .form-group select:invalid:focus {
+            border-color: #dc3545;
+            box-shadow: 0 0 4px rgba(220, 53, 69, 0.5);
+        }
+
+
 
         .form-group input, .form-group textarea {
             width: 100%;
@@ -122,8 +163,24 @@
                 <input type="text" id="place" name="place" required>
             </div>
             <div class="form-group">
+                <label for="address">Address</label>
+                <input type="text" id="address" name="address" required>
+            </div>
+            <div class="form-group">
+                <label for="phone">Phone</label>
+                <input type="text" id="phone" name="phone" required>
+            </div>
+            <div class="form-group">
+                <label for="email">E-mail</label>
+                <input type="text" id="email" name="email" required>
+            </div>
+            <div class="form-group">
                 <label for="date">Date</label>
                 <input type="date" id="date" name="date" required>
+            </div>
+            <div class="form-group">
+                <label for="end_date">End Date(Optional)</label>
+                <input type="date" id="end_date" name="end_date" >
             </div>
             <div class="form-group">
                 <label for="description">Description</label>

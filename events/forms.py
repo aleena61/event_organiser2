@@ -5,7 +5,7 @@ from django.contrib.auth.forms import AuthenticationForm
 class EventForm(forms.ModelForm):
     class Meta:
         model = Event
-        fields = ['name', 'place', 'date','category', 'description','newsletter','latitude','longitude']
+        fields = ['name', 'place', 'date','category', 'description','newsletter','latitude','longitude','phone','email','end_date']
 
         
         newsletter = forms.CharField(widget=forms.Textarea, required=False)

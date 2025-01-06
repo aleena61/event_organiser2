@@ -17,7 +17,37 @@ from django.contrib import messages
 from django.http import Http404, JsonResponse
 from datetime import datetime,timedelta
 from django.core.mail import send_mail
+from django.db.models import Sum
 genai.configure(api_key="AIzaSyBx731nHQN7dUUT4sAodinK09LmWu5RGRY")
+
+
+from django.shortcuts import render
+from django.db.models import Sum
+
+def event_dashboard(request):
+    # Retrieve all events created by the logged-in user
+    user_events = Event.objects.filter(user=request.user)
+
+    # Retrieve data for the bar graph (event names and total visits)
+    event_visits = (
+        user_events.values('name')  # Group by event name
+        .annotate(total_visits=Sum('visits'))  # Sum visits for each event
+        .order_by('name')  # Order by event name
+    )
+
+    context = {
+        'events': user_events,
+        'event_visits': list(event_visits),  # Convert QuerySet to list for JSON serialization
+    }
+
+    return render(request, 'events/event_dashboard.html', context)
+
+
+def delete_event(request, event_id):
+    # Delete an event by ID
+    event = get_object_or_404(Event, id=event_id, created_by=request.user)
+    event.delete()
+    return redirect('event_dashboard')
 
 def calendar_view(request):
   
@@ -150,6 +180,7 @@ def event_detail(request, event_id):
     # Fetch the event by ID
     event = get_object_or_404(Event, id=event_id)
     event.visits += 1
+    event.save()
     # Get related event photos, old photos, and competitions
     event_photos = event.photos.all()
     old_photos = event.old_photos.all()
@@ -168,15 +199,18 @@ def create_newsletter(request, event_id):
     # Get the event by ID
     event = Event.objects.get(id=event_id)
 
-    # Handle POST request to generate newsletter
+    # Handle POST request to approve, reject, or save edited newsletter
     if request.method == 'POST':
         action = request.POST.get('action')
 
         if action == 'approve':
-            # Generate the content for the newsletter using AI
-            newsletter_content = generate_newsletter(event)
-            event.newsletter = newsletter_content  # Save generated newsletter to event
+            # Get the edited newsletter content from the form
+            edited_content = request.POST.get('edited_newsletter', '')
+
+            # Save the edited content as the newsletter
+            event.newsletter = edited_content
             event.save()
+
             messages.success(request, 'Newsletter has been approved and saved.')
             return redirect('event_detail', event_id=event.id)  # Redirect to event detail page
 
@@ -192,6 +226,7 @@ def create_newsletter(request, event_id):
         'event': event
     })
 
+
 # Generate the newsletter content using Gemini API
 def generate_newsletter(event):
     content = f"""
@@ -200,6 +235,10 @@ def generate_newsletter(event):
     <p><strong>Date:</strong> {event.date}</p>
     <p><strong>Description:</strong> {event.description}</p>
     <p><strong>Don't miss out on this amazing event!</strong></p>
+    <p>With the following details generate a newsletter for the event,
+   in structured HTML with proper paragraphs and line breaks
+   ,it should be well structured with place and 
+    date like newspaper,and not more than 250 words.
     """
     
     # Example of generating content through Gemini API
@@ -275,24 +314,82 @@ def logout_view(request):
     messages.success(request, 'You have been logged out.')
     return redirect('home')
 
+from django.db.models import Q
+
+
+from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
+from django.db.models import Q
+from .models import Event, EventUser
+from math import radians, sin, cos, sqrt, atan2
+
+
+# Helper to calculate distance
+def calculate_distance(lat1, lon1, lat2, lon2):
+    lat1, lon1, lat2, lon2 = map(radians, [lat1, lon1, lat2, lon2])
+    dlat = lat2 - lat1
+    dlon = lon2 - lon1
+    a = sin(dlat / 2)**2 + cos(lat1) * cos(lat2) * sin(dlon / 2)**2
+    c = 2 * atan2(sqrt(a), sqrt(1 - a))
+    R = 6371  # Radius of the Earth in km
+    return R * c
+
+
 @login_required
 def profile_view(request):
-    events = Event.objects.filter(status='approved') 
     user = request.user
-    # Get the user's events (or other related data)
-     # This depends on your model structure
-     # Fetch approved events
     events = Event.objects.filter(status='approved')
 
-    # Get trending events (top 5 by number of visits)
+    # Get user location
+    user_lat = user.profile.latitude
+    user_lon = user.profile.longitude
+
+    # User visited events
+    visited_events = EventUser.objects.filter(user=user, visited=True).values_list('event', flat=True)
+    categories = Event.objects.filter(id__in=visited_events).values_list('category', flat=True)
+    places = Event.objects.filter(id__in=visited_events).values_list('place', flat=True)
+
+    # Suggested events based on category, place, and location
+    suggested_events = []
+    for event in events:
+        distance = calculate_distance(user_lat, user_lon, event.latitude, event.longitude) if user_lat and user_lon else None
+        if (event.category in categories or event.place in places or (distance and distance <= 50)):
+            suggested_events.append(event)
+
     trending_events = events.order_by('-visits')[:4]
+    recent_events = events.order_by('-created_at')[:4]
+    print(recent_events)
 
-    # Get recently added events (top 5 by date added)
-    recently_added_events = events.order_by('-created_at')[:4]
+    return render(request, 'events/profile.html', {
+        'user': user,
+        'events':events,
+        'suggested_events': suggested_events,
+        'trending_events': trending_events,
+        'recent_events': recent_events,
+    })
 
-    # Pass both lists to the template
-    return render(request, 'events/profile.html', {'events': events,'user':user,'trending_events': trending_events,
-        'recently_added_events': recently_added_events,})
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+import json
+
+@login_required
+@csrf_exempt
+def update_location(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        latitude = data.get('latitude')
+        longitude = data.get('longitude')
+        user = request.user
+
+        if latitude and longitude:
+            user.profile.latitude = latitude
+            user.profile.longitude = longitude
+            user.profile.save()
+            return JsonResponse({'status': 'success', 'message': 'Location updated successfully'})
+
+        return JsonResponse({'status': 'error', 'message': 'Invalid data'})
+    return JsonResponse({'status': 'error', 'message': 'Invalid request'})
+
 
 @login_required
 def bookmark_event(request, event_id):
@@ -386,5 +483,12 @@ def notify_user(event):
         from_email="festfeed00@gmail.com",
         recipient_list=[user_email],
     )
+from django.http import JsonResponse
+
+def check_login_status(request):
+    if request.user.is_authenticated:
+        return JsonResponse({'redirect_url': '/profile/'})  # Redirect to profile page
+    else:
+        return JsonResponse({'redirect_url': '/'})  # Redirect to home page
 
 

@@ -54,6 +54,16 @@
         .reject-button:hover {
             background-color: #e53935;
         }
+        textarea {
+            width: 100%;
+            min-height: 200px;
+            font-size: 1.2em;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            resize: vertical;
+            margin-top: 15px;
+        }
     </style>
 </head>
 <body>
@@ -70,16 +80,15 @@
     <hr>
 
     <div>
-        <h3>Generated Newsletter Content:</h3>
-        <p>{% autoescape off %}{{ newsletter_content|safe }}{% endautoescape %}</p>
-    </div>
-
-    <div class="footer">
-        <p>Thank you for reviewing the newsletter content!</p>
+        <h3>Edit Generated Newsletter Content:</h3>
         <form method="POST">
             {% csrf_token %}
-            <button type="submit" name="action" value="approve">Approve</button>
-            <button type="submit" name="action" value="reject" class="reject-button">Reject</button>
+            <textarea name="edited_newsletter">{% autoescape off %}{{ newsletter_content|safe }}{% endautoescape %}</textarea>
+            <div class="footer">
+                <p>Thank you for reviewing the newsletter content!</p>
+                <button type="submit" name="action" value="approve">Approve</button>
+                <button type="submit" name="action" value="reject" class="reject-button">Reject</button>
+            </div>
         </form>
     </div>
 </div>
