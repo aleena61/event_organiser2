@@ -15,14 +15,31 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.http import Http404, JsonResponse
-from datetime import datetime,timedelta
+from datetime import datetime,timedelta, timezone
 from django.core.mail import send_mail
 from django.db.models import Sum
+from .models import Notification
+from datetime import timedelta
+from django.utils import timezone
+
 genai.configure(api_key="AIzaSyBx731nHQN7dUUT4sAodinK09LmWu5RGRY")
 
 
 from django.shortcuts import render
 from django.db.models import Sum
+
+@login_required
+def notifications_list(request):
+    notifications = request.user.notifications.all().order_by('-created_at')
+    return render(request, 'events/notifications.html', {'notifications': notifications})
+
+@login_required
+def mark_notification_as_read(request, notification_id):
+    notification = get_object_or_404(Notification, id=notification_id, user=request.user)
+    notification.is_read = True
+    notification.save()
+    return redirect('notifications_list')
+
 
 def event_dashboard(request):
     # Retrieve all events created by the logged-in user
@@ -148,7 +165,11 @@ def add_event(request):
                 OldPhoto.objects.create(event=event, image=old_photo)
                 notify_user(event)
             
-            return redirect('event_detail', event_id=event.id)
+            Notification.objects.create(
+                message=f"New event request: {event.name} by {request.user}"
+            )
+        return redirect('event_detail', event_id=event.id)
+
 
     else:
 
@@ -161,26 +182,48 @@ def add_event(request):
     })
 def home(request):
     # Fetch approved events
-    events = Event.objects.filter(status='approved')
+    events = Event.objects.filter(status='Approved')
 
     # Get trending events (top 5 by number of visits)
-    trending_events = events.order_by('-visits')[:4]
+    trending_events = events.order_by('-visits')[:6]
 
     # Get recently added events (top 5 by date added)
-    recently_added_events = events.order_by('-created_at')[:4]
+    recently_added_events = events.order_by('-created_at')[:6]
+
+     # Upcoming events (within the next month)
+    today = timezone.now().date()
+
+    # Upcoming events within the next month (combined)
+    upcoming_events = events.filter(date__gt=today, date__lte=today + timedelta(weeks=4))[:10]  # Limit to 10 events
+
+    # Ongoing events (happening today or between start and end date)
+    ongoing_events = events.filter(date__lte=today, end_date__gte=today)
 
     # Pass both lists to the template
     return render(request, 'events/home.html', {
         'events': events,
         'trending_events': trending_events,
         'recently_added_events': recently_added_events,
+        'upcoming_events': upcoming_events,  # Pass the merged upcoming events
+        'ongoing_events': ongoing_events,
     })
 
 def event_detail(request, event_id):
     # Fetch the event by ID
     event = get_object_or_404(Event, id=event_id)
+    user = request.user
+
+    # Increment visits for the event
     event.visits += 1
     event.save()
+
+    # Update or create an EventUser record to mark it as visited
+    event_user, created = EventUser.objects.get_or_create(user=user, event=event)
+    event_user.visited = True
+    event_user.save()
+
+
+
     # Get related event photos, old photos, and competitions
     event_photos = event.photos.all()
     old_photos = event.old_photos.all()
@@ -256,10 +299,14 @@ def login_view(request):
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
-            return redirect('profile')  # Replace 'home' with your desired redirect URL
+            if username=='john':
+                return redirect('dashboard_view_admin')
+            else:
+                return redirect('profile')  # Replace 'home' with your desired redirect URL
         else:
             messages.error(request, 'Invalid username or password.')
     return render(request, 'events/login.html')
+
 
 
 
@@ -338,34 +385,76 @@ def calculate_distance(lat1, lon1, lat2, lon2):
 @login_required
 def profile_view(request):
     user = request.user
-    events = Event.objects.filter(status='approved')
+    events = Event.objects.filter(status='Approved')
 
     # Get user location
     user_lat = user.profile.latitude
     user_lon = user.profile.longitude
 
-    # User visited events
+    # Fetch all events visited by the user
     visited_events = EventUser.objects.filter(user=user, visited=True).values_list('event', flat=True)
-    categories = Event.objects.filter(id__in=visited_events).values_list('category', flat=True)
-    places = Event.objects.filter(id__in=visited_events).values_list('place', flat=True)
 
-    # Suggested events based on category, place, and location
+    # Fetch all events bookmarked by the user
+    bookmarked_events = EventUser.objects.filter(user=user, bookmarked=True).values_list('event', flat=True)
+
+    # Get the categories and places for visited events
+    visited_categories = Event.objects.filter(id__in=visited_events).values_list('category', flat=True)
+    visited_places = Event.objects.filter(id__in=visited_events).values_list('place', flat=True)
+
+    # Get the categories and places for bookmarked events
+    bookmarked_categories = Event.objects.filter(id__in=bookmarked_events).values_list('category', flat=True)
+    bookmarked_places = Event.objects.filter(id__in=bookmarked_events).values_list('place', flat=True)
+
+    # Combine all the categories and places from visited and bookmarked events
+    categories = set(visited_categories) | set(bookmarked_categories)
+    places = set(visited_places) | set(bookmarked_places)   
+
+    # Separate lists for suggested and nearby events
     suggested_events = []
-    for event in events:
-        distance = calculate_distance(user_lat, user_lon, event.latitude, event.longitude) if user_lat and user_lon else None
-        if (event.category in categories or event.place in places or (distance and distance <= 50)):
-            suggested_events.append(event)
+    nearby_events = []
 
-    trending_events = events.order_by('-visits')[:4]
-    recent_events = events.order_by('-created_at')[:4]
-    print(recent_events)
+    for event in events:
+        # Calculate distance only if the user's location and event's location are available
+        distance = calculate_distance(user_lat, user_lon, event.latitude, event.longitude) if user_lat and user_lon else None
+
+        if distance and distance <= 50:
+          nearby_events.append(event)
+
+        # Exclude events already visited
+        if event.id in visited_events:
+            continue
+
+        # Add to suggested_events based on category or place
+        if event.category in categories or event.place in places:
+            suggested_events.append(event)
+        
+    # Get trending and recent events
+    trending_events = events.order_by('-visits')[:6]
+    recent_events = events.order_by('-created_at')[:6]
+    print(nearby_events)    
+
+    # Upcoming events (within the next month)
+    today = timezone.now().date()
+
+    # Upcoming events within the next month (combined)
+    upcoming_events = events.filter(date__gt=today, date__lte=today + timedelta(weeks=4))[:10]  # Limit to 10 events
+
+    # Ongoing events (happening today or between start and end date)
+    ongoing_events = events.filter(date__lte=today, end_date__gte=today)
+
+    # Recently visited events (limit to most recent visits)
+    recent_visited_events = Event.objects.filter(id__in=visited_events).order_by('-eventuser__created_at')[:6]
 
     return render(request, 'events/profile.html', {
         'user': user,
         'events':events,
+        'nearby_events': nearby_events,
         'suggested_events': suggested_events,
         'trending_events': trending_events,
         'recent_events': recent_events,
+        'upcoming_events': upcoming_events,  # Pass the merged upcoming events
+        'ongoing_events': ongoing_events,
+        'recent_visited_events': recent_visited_events,
     })
 
 from django.http import JsonResponse
@@ -395,12 +484,14 @@ def update_location(request):
 def bookmark_event(request, event_id):
     event = get_object_or_404(Event, id=event_id)
     user = request.user
-
+    event_user, created = EventUser.objects.get_or_create(user=user, event=event)
     if event in user.bookmarked_events.all():
-        user.bookmarked_events.remove(event)  # Remove bookmark
+        user.bookmarked_events.remove(event) 
+        event_user.bookmarked = False # Remove bookmark
         bookmarked = False
     else:
-        user.bookmarked_events.add(event)  # Add bookmark
+        user.bookmarked_events.add(event)
+        event_user.bookmarked = True  # Add bookmark
         bookmarked = True
 
     return JsonResponse({'bookmarked': bookmarked})
@@ -458,7 +549,7 @@ def delete_event(request, event_id):
         notify_user(event)
         return redirect('event_detail', event_id=event.id)  # Delete the event
     return redirect('profile')  # Redirect to the event list or wherever you prefer
-@staff_member_required
+
 def manage_events(request):
     events = Event.objects.all()  # Fetch all events
     if request.method == 'POST':
@@ -490,5 +581,122 @@ def check_login_status(request):
         return JsonResponse({'redirect_url': '/profile/'})  # Redirect to profile page
     else:
         return JsonResponse({'redirect_url': '/'})  # Redirect to home page
+from django.shortcuts import render
+from .models import Event
+from django.db.models import Count
+
+def dashboard_view(request):
+    CATEGORY_CHOICES = [
+        ('cultural', 'Cultural'),
+        ('Music', 'Music'),
+        ('Sports', 'Sports'),
+        ('Art', 'Art'),
+        ('Tech', 'Tech'),
+        ('Food', 'Food'),
+    ]
+    category_labels = []
+    for category_key, category_label in CATEGORY_CHOICES:
+        category_labels.append(category_label)
+        
+    # Example: count events by category
+    categories_count = Event.objects.filter(status='Approved').values('category').annotate(count=Count('category'))
+    
+
+    events_data = list(
+        Event.objects.filter(status='Approved').values('date', 'visits', 'category')
+        .annotate(event_count=Count('name'))
+        .order_by('date')
+    )
+    for event in events_data:
+        event['date'] = event['date'].isoformat()
+    # Example: total visits of events
+    total_visits = Event.objects.filter(status='Approved').aggregate(total_visits=Sum('visits'))
+    
+    # Get all events and their view count for the pie chart
+    events = Event.objects.filter(status='Approved').values('name', 'visits')  # Assuming 'visits' is the field tracking event views
+    
+    context = {
+        'categories_count': categories_count,
+        'total_visits': total_visits,
+        'events': events,  # Adding events data for the pie chart
+        'category_labels': category_labels,
+        'events_data': json.dumps(list(events_data)),
+    }
+    
+    return render(request, 'events/dashboard.html', context)
+
+
+
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib import messages
+from .models import Event
+from django.http import HttpResponse
+
+# View to approve selected events
+def approve_events(request):
+    if request.method == 'POST':
+        event_ids = request.POST.getlist('event_ids')  # Get the list of event IDs from the form
+        events = Event.objects.filter(id__in=event_ids)
+        events.update(status='approved')  # Approve selected events
+        
+        messages.success(request, "Selected events have been approved.")
+        return redirect('events_dashboard')  # Redirect to an appropriate page (e.g., events dashboard)
+
+# View to reject selected events
+def reject_events(request):
+    if request.method == 'POST':
+        event_ids = request.POST.getlist('event_ids')  # Get the list of event IDs from the form
+        events = Event.objects.filter(id__in=event_ids)
+        events.update(status='rejected')  # Reject selected events
+        
+        messages.success(request, "Selected events have been rejected.")
+        return redirect('events_dashboard')
+
+# View to approve event changes
+def approve_changes(request):
+    if request.method == 'POST':
+        event_ids = request.POST.getlist('event_ids')  # Get the list of event IDs from the form
+        events = Event.objects.filter(id__in=event_ids)
+        events.update(requested_approval=False, status='approved')  # Approve changes for selected events
+        
+        messages.success(request, "Selected events' changes have been approved.")
+        return redirect('events_dashboard')
+
+# View to reject event changes
+def reject_changes(request):
+    if request.method == 'POST':
+        event_ids = request.POST.getlist('event_ids')  # Get the list of event IDs from the form
+        events = Event.objects.filter(id__in=event_ids)
+        events.update(requested_approval=False, status='rejected')  # Reject changes for selected events
+        
+        messages.success(request, "Selected events' changes have been rejected.")
+        return redirect('events_dashboard')
+
+# View to approve event deletion
+def approve_deletion(request):
+    if request.method == 'POST':
+        event_ids = request.POST.getlist('event_ids')  # Get the list of event IDs from the form
+        events = Event.objects.filter(id__in=event_ids)
+        events.update(delete_requested=False, status='deleted')  # Approve deletion for selected events
+        
+        for event in events:
+            event.delete()  # Delete the events
+
+        messages.success(request, "Selected events have been deleted.")
+        return redirect('events_dashboard')
+
+# View to reject event deletion
+def reject_deletion(request):
+    if request.method == 'POST':
+        event_ids = request.POST.getlist('event_ids')  # Get the list of event IDs from the form
+        events = Event.objects.filter(id__in=event_ids)
+        events.update(delete_requested=False, status='active')  # Reject deletion for selected events
+        
+        messages.success(request, "Selected events' deletion has been rejected.")
+        return redirect('events_dashboard')
+    
+from django.shortcuts import render, get_object_or_404
+from .models import Event
+
 
 

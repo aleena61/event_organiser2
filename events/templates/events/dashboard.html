@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            background: linear-gradient(to bottom right, #1E3A8A, #A7C7E7);
+            color: #333;
+        }
+
+        /* Loader Animation */
+        #loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        #loader div {
+            width: 20px;
+            height: 20px;
+            margin: 5px;
+            background-color: #33658A;
+            border-radius: 50%;
+            animation: bounce 1.5s infinite ease-in-out;
+        }
+
+        #loader div:nth-child(2) {
+            animation-delay: 0.3s;
+        }
+
+        #loader div:nth-child(3) {
+            animation-delay: 0.6s;
+        }
+
+        @keyframes bounce {
+            0%, 80%, 100% {
+                transform: scale(0);
+            }
+            40% {
+                transform: scale(1);
+            }
+        }
+
+        /* Header Section */
+        header {
+            background-color: rgba(255, 255, 255, 0.9);
+            color: #1E3A8A;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+            animation: fadeInDown 2s ease-out;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 3em;
+            font-family: 'Kaushan Script', cursive;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes fadeInDown {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+        }
+
+        
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* Search Section */
+        .search-container {
+            text-align: center;
+            margin: 20px 0;
+            animation: fadeIn 2s ease-in-out;
+        }
+
+        #search-bar, #filter-option {
+            padding: 10px;
+            font-size: 1em;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            transition: border-color 0.3s;
+        }
+
+        #search-bar:focus, #filter-option:focus {
+            border-color: #F6AE2D;
+            outline: none;
+        }
+
+        button {
+            padding: 10px 15px;
+            font-size: 1em;
+            background-color: #1E3A8A;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background-color 0.3s, transform 0.3s;
+        }
+
+        button:hover {
+            background-color: #A7C7E7;
+            transform: scale(1.05);
+        }
+
+        .events-container {
+    width: 90%;
+    margin: 0 auto;
+    padding: 20px 0;
+}
+
+section {
+    margin-bottom: 40px;
+}
+
+h2 {
+    font-size: 24px;
+    color: #333;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.events-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+}
+
+.event-card {
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    width: 300px;
+    padding: 15px;
+    text-align: center;
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s;
+}
+
+.event-card img {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 4px;
+    margin-bottom: 10px;
+}
+
+.event-card:hover {
+    transform: scale(1.05);
+}
+
+        .view-details {
+            display: inline-block;
+            margin: 10px 0;
+            padding: 8px 15px;
+            background-color: #A7C7E7; /* Light blue button */
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: background-color 0.3s, transform 0.3s;
+        }
+
+        .view-details:hover {
+            background-color: #1E3A8A;
+            transform: scale(1.1);
+        }
+
+        /* Add Event Button */
+        .add-event-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #1E3A8A; /* Navy blue */
+            color: white;
+            padding: 15px;
+            border-radius: 50%;
+            font-size: 1.5em;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            transition: background-color 0.3s, transform 0.3s;
+        }
+        .login-btn {
+            position: absolute ;
+            top: 50px;
+            right: 5px;
+            background-color: #1E3A8A; /* Navy blue */
+            color: white;
+            padding: 11px;
+            border-radius: 90%;
+            font-size: 1em;
+            box-shadow: 0 5px 5px rgba(0, 0, 0, 0.2);
+            transition: background-color 0.3s, transform 0.3s;
+        }
+        .menu-btn {
+            position: absolute ;
+            top: 40px;
+            width: 50px;
+            height: 50px;
+            right: 20px;
+            background-color: #1E3A8A; /* Navy blue */
+            color: white;
+            padding: 11px;
+            border-radius: 10%;
+            font-size: 1.5em;
+            box-shadow: 0 5px 5px rgba(0, 0, 0, 0.2);
+            transition: background-color 0.3s, transform 0.3s;
+        }
+        .menu-container {
+            
+            z-index: 1001; /* Ensure it's above the nav bar */
+        }
+
+        .add-event-btn:hover {
+            background-color: #A7C7E7;
+            transform: scale(1.1);
+        }
+        .menu-btn:hover {
+            background-color: #A7C7E7;
+            transform: scale(1.1);
+        }
+        /* Add some spacing between charts */
+        .chart-container {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            }
+
+            .filter {
+                text-align: left;
+                padding-left: 1.5rem;
+                border-radius: 8px;
+                transition: transform 0.2s, box-shadow 0.2s;
+                }
+    </style>
+</head>
+<body>
+   <div class="row mb-12">
+        <h1 style="text-align:center;padding-top:30px">Event Dashboard</h1><br>
+        <div class="text-center mb-3">
+            <a href="{%url 'manage_events'%}" id="importButton" class="btn btn-success">Review Events</a>
+         </div>
+        <div class="col-md-6">
+           <div class="chart-container">
+            <h2 style="text-align:center">Event Statistics</h2>
+            <div class="row mb-3">
+                <div class="filter col-md-2">
+                   <label for="timeFilter" class="form-label">Time Range</label>
+                   <select id="timeFilter" class="form-select select-dropdown" onchange="handleTimeFilterChange()">
+                      <option value="">All</option>
+                      <option value="thisYear">This Year</option>
+                      <option value="thisMonth">This Month</option>
+                      <option value="thisWeek">This Week</option>
+                      <option value="dateRange">Date Range</option>
+                   </select>
+                </div>
+                <div class="filter col-md-2" id="startDateContainer" style="display: none;">
+                   <label for="startDate" class="form-label">Start Date</label>
+                   <input type="date" id="startDate" class="form-control" onchange="checkDateRangeAndUpdateGraph()">
+                </div>
+                <div class="filter col-md-2" id="endDateContainer" style="display: none;">
+                   <label for="endDate" class="form-label">End Date</label>
+                   <input type="date" id="endDate" class="form-control" onchange="checkDateRangeAndUpdateGraph()">
+                </div>
+                <div class="filter col-md-2">
+                   <label for="category" class="form-label">Category</label>
+                   <select id="category" class="form-select select-dropdown" onchange="updateGraph()">
+                      <option value="">All</option>
+                      {% for label in category_labels %}
+                      <option value="{{ label }}">{{ label }}</option>
+                      {% endfor %}
+                   </select>
+                </div>
+                <div class="filter col-md-2">
+                   <label for="visits" class="form-label">Visits</label>
+                   <select id="visits" class="form-select select-dropdown" onchange="updateGraph()">
+                      <option value="">All</option>
+                      
+                      <option value="100">Less than 100</option>
+                      <option value="50">Less than 50 </option>
+                      <option value="10">Less than 10</option>
+                      
+                   </select>
+                </div>
+               </div>
+
+
+              <canvas id="eventChart"></canvas>
+           </div>
+        </div>
+        <div class="col-md-6">
+      
+            <div class="chart-container">
+                <h2 style="text-align:center">Total Event Visits</h2>
+                <canvas id="eventViewsChart" width="100" height="150"></canvas>
+            </div>
+         </div>
+    </div>
+
+
+
+
+    <div class="row mb-12">
+   
+    
+     <div class="col-md-6">
+      
+        <div class="chart-container">
+            <h2 style="text-align:center">Event Categories</h2>
+        <canvas id="categoriesChart" width="100" height="150"></canvas>
+    </div>
+</div>
+</div>
+{% block script %}
+    <script>
+
+        function handleTimeFilterChange() {
+            const timeFilter = document.getElementById('timeFilter').value;
+            const startDateContainer = document.getElementById('startDateContainer');
+            const endDateContainer = document.getElementById('endDateContainer');
+            
+            if (timeFilter === 'dateRange') {
+                startDateContainer.style.display = 'block';
+                endDateContainer.style.display = 'block';
+            } else {
+                startDateContainer.style.display = 'none';
+                endDateContainer.style.display = 'none';
+                // Reset date inputs when not using date range
+                document.getElementById('startDate').value = '';
+                document.getElementById('endDate').value = '';
+                updateGraph(); // Update graph immediately for other filters
+            }
+        }
+        
+
+        function checkDateRangeAndUpdateGraph() {
+            const timeFilter = document.getElementById('timeFilter').value;
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+        
+            if (timeFilter === 'dateRange') {
+                if (startDate && endDate) {
+                    updateGraph(); // Only update graph if both dates are selected
+                }
+            }
+        }
+
+        
+        // Graph for Total Visits
+      // Graph for Event Views (Pie Chart for each Event)
+      // Graph for Event Views (Pie Chart for each Event)
+      const eventViewsChart = document.getElementById('eventViewsChart').getContext('2d');
+      new Chart(eventViewsChart, {
+          type: 'pie',
+          data: {
+              labels: [{% for item in events %}'{{ item.name|escapejs }}'{% if not forloop.last %},{% endif %}{% endfor %}], // Event Names
+              datasets: [{
+                  label: 'Event Views',
+                  data: [{% for item in events %}{{ item.visits }}{% if not forloop.last %}, {% endif %}{% endfor %}], // Event Views
+                  backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40', '#C2C2C2'],  // Custom colors
+                  borderColor: '#FFFFFF',
+                  borderWidth: 1,
+              }],
+          },
+          options: {
+              responsive: true,
+              plugins: {
+                  legend: {
+                      position: 'top',
+                  },
+                  tooltip: {
+                      callbacks: {
+                          label: function(tooltipItem) {
+                              return tooltipItem.raw + ' views';  // Display number of views on hover
+                          },
+                      },
+                  },
+              },
+              aspectRatio: 1.5,
+          },
+      });
+        // Graph for Categories Count
+        const categoriesChart = document.getElementById('categoriesChart').getContext('2d');
+        new Chart(categoriesChart, {
+            type: 'bar',
+            data: {
+                labels: [{% for item in categories_count %}'{{ item.category }}'{% if not forloop.last %}, {% endif %}{% endfor %}],
+                datasets: [{
+                    label: 'Events per Category',
+                    data: [{% for item in categories_count %}{{ item.count }}{% if not forloop.last %}, {% endif %}{% endfor %}],
+                    backgroundColor: '#4BC0C0',
+                    borderColor: '#FFFFFF',
+                    borderWidth: 1,
+                }],
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                    },
+                },
+                // Adjust size via aspectRatio
+                aspectRatio: 1.5, // Keep charts proportional but more compact
+            },
+        });
+        const eventsData = JSON.parse('{{ events_data|safe }}');
+        console.log("Issues Data Loaded:", eventsData);
+        let eventChart; 
+        function createGraph(filteredData) {
+            // Destroy the existing chart if it exists
+            if (eventChart) {
+                eventChart.destroy(); 
+            }
+            
+
+            if (!filteredData || filteredData.length === 0) {
+                console.error('Filtered data is empty');
+                return;
+            }
+        
+            // Extract dates and counts from filtered data
+           // const dates = filteredData.map(item => item.date);  // Assuming 'item.date' is the date field
+            //const counts = filteredData.map(item => item.eventCount);  // Assuming 'item.eventCount' is the event count
+            
+            const groupedData = filteredData.reduce((acc, item) => {
+                const date = new Date(item.date); // Ensure correct event date
+                // Format the date to YYYY-MM-DD (or your preferred format)
+                const formattedDate = date.toISOString().split('T')[0];
+        
+                // If the date already exists, increment the event count
+                if (acc[formattedDate]) {
+                    acc[formattedDate] += 1;
+                } else {
+                    acc[formattedDate] = 1;
+                }
+        
+                return acc;
+            }, {});
+        
+            // Extract the keys (dates) and values (number of events)
+            const dates = Object.keys(groupedData);
+            const eventCounts = Object.values(groupedData);
+            
+
+     
+           
+        
+            // Get context for the chart
+            const ctx = document.getElementById('eventChart').getContext('2d');
+            
+            eventChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: dates, // Use dates as x-axis labels
+                    datasets: [{
+                        label: 'Number of Events',
+                        data: eventCounts, // Event counts on y-axis
+                        borderColor: 'rgba(75, 192, 192, 1)', // Line color
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)', // Background color for the line
+                        borderWidth: 2,
+                        tension: 0.3, // Line smoothing
+                    }]
+                },
+                options: {
+                    responsive: true, // Make the chart responsive
+                    scales: {
+                        x: {
+                            type: 'category',  // Treat x-axis as categorical (dates)
+                            ticks: {
+                                autoSkip: dates.length > 8, // Skip some date labels if there are too many
+                                maxTicksLimit: 9,  // Limit the maximum number of ticks on the x-axis
+                                callback: function(value, index) {
+                                    // Display all labels for smaller datasets, and skip some for larger ones
+                                    if (dates.length <= 10) return this.getLabelForValue(value);
+                                    return index % Math.ceil(dates.length / 10) === 0 
+                                        ? this.getLabelForValue(value) 
+                                        : null;
+                                }
+                            },
+                            title: {
+                                display: true,
+                                text: 'Date', // x-axis title
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Number of Events', // y-axis title
+                            },
+                            beginAtZero: true, // Start the y-axis from 0
+                            ticks: {
+                                callback: function(value) {
+                                    // Only display integer values on the y-axis
+                                    return Number.isInteger(value) ? value : null;
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(tooltipItem) {
+                                    // Custom tooltip label to show event count
+                                    return `Events: ${tooltipItem.raw}`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateGraph() {
+            const timeFilter = document.getElementById('timeFilter').value;
+            const today = new Date();
+            let fromDate, toDate;
+        
+            if (timeFilter === 'thisYear') {
+                fromDate = new Date(today.getFullYear(), 0, 1);
+                toDate = new Date(today.getFullYear(), 11, 31);
+            } else if (timeFilter === 'thisMonth') {
+                fromDate = new Date(today.getFullYear(), today.getMonth(), 1);
+                toDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+            } else if (timeFilter === 'thisWeek') {
+                const day = today.getDay();
+                fromDate = new Date(today);
+                fromDate.setDate(today.getDate() - day); // Start of the week
+                toDate = new Date(today);
+                toDate.setDate(today.getDate() + (6 - day)); // End of the week
+            } else if (timeFilter === 'dateRange') {
+                fromDate = new Date(document.getElementById('startDate').value);
+                toDate = new Date(document.getElementById('endDate').value);
+            }
+        
+           
+            const category = document.getElementById('category').value;
+            const visits = document.getElementById('visits').value;
+
+            const filteredData = eventsData.filter(item => {
+                const itemDate = new Date(item.date);
+                return (
+                    (!fromDate || itemDate >= fromDate) &&
+                    (!toDate || itemDate <= toDate) &&
+                    (!category || item.category === category) &&
+                    (!visits || item.visits < visits) // Filter for views
+                );
+            });
+            
+        
+            console.log("Filtered Data:", filteredData);
+        
+            if (filteredData.length === 0) {
+                alert('No data matches the selected filters');
+                return;
+            }
+        
+            createGraph(filteredData);
+        }
+
+       
+        createGraph(eventsData);
+    </script>
+    {% endblock script %}
+</body>
+</html>

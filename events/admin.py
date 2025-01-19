@@ -1,5 +1,7 @@
 from django.contrib import admin
-from .models import Event, Competition
+from django.contrib.auth.models import User
+from .models import Event, Competition, Notification
+
 
 @admin.register(Event)
 class EventAdmin(admin.ModelAdmin):
@@ -7,6 +9,21 @@ class EventAdmin(admin.ModelAdmin):
     list_filter = ('status',)
     actions = ['approve_deletion', 'reject_deletion', 'approve_changes', 'reject_changes', 'approve_events']
 
+    def save_model(self, request, obj, form, change):
+        """
+        Overrides the save_model method to create a notification
+        for the superuser when a new event submission is created.
+        """
+        if not change:  # Check if this is a new object (not an update)
+            superusers = User.objects.filter(is_superuser=True)
+            for superuser in superusers:
+                Notification.objects.create(
+                    user=superuser,
+                    message=f"A new event submission '{obj.name}' has been created."
+                )
+        super().save_model(request, obj, form, change)
+
+    
     def approve_deletion(self, request, queryset):
         queryset.update(delete_requested=False, status='deleted')
         for event in queryset:
@@ -32,3 +49,23 @@ class EventAdmin(admin.ModelAdmin):
 
 # Register the Competition model
 admin.site.register(Competition)
+@admin.register(Notification)
+class NotificationAdmin(admin.ModelAdmin):
+    list_display = ('message', 'created_at', 'read')
+    list_filter = ('read',)
+    actions = ['mark_as_read']
+
+    def mark_as_read(self, request, queryset):
+        queryset.update(read=True)
+    mark_as_read.short_description = "Mark selected notifications as read"
+
+from django.contrib.admin import AdminSite
+from .models import Notification
+
+class CustomAdminSite(AdminSite):
+    def each_context(self, request):
+        context = super().each_context(request)
+        context['notifications'] = Notification.objects.filter(read=False)
+        return context
+
+admin_site = CustomAdminSite()

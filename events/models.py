@@ -1,6 +1,6 @@
 # models.py
 from django.core.exceptions import ValidationError
-
+from django.utils.timezone import now
 from django.db import models
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
@@ -55,7 +55,7 @@ class Event(models.Model):
         ('Approved', 'Approved'),
         ('Rejected', 'Rejected'),
     ]
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Pending')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     requested_approval = models.BooleanField(default=False)
@@ -73,7 +73,7 @@ class Event(models.Model):
         return '/static/images/event2.jpg' 
     def clean(self):
         super().clean()
-        if self.end_date and self.end_date < self.start_date:
+        if self.end_date and self.end_date < self.date:
             raise ValidationError("End date cannot be earlier than the start date.")
 class UserCalendar(models.Model):
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
@@ -106,12 +106,54 @@ class Competition(models.Model):
     def __str__(self):
         return self.name
 
+# class EventUser(models.Model):
+#     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='eventuser')
+#     event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='eventuser')
+#     visited = models.BooleanField(default=False)
+#     bookmarked = models.BooleanField(default=False)
+
+
+
+MAX_EVENT_USER_RECORDS = 10  # Maximum number of EventUser records per user
+
 class EventUser(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='eventuser')
     event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='eventuser')
     visited = models.BooleanField(default=False)
     bookmarked = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)  # Timestamp for FIFO logic
 
- 
+    def __str__(self):
+        return f"{self.user.username} - {self.event.name}"
+
+    class Meta:
+        ordering = ['-created_at']  # Ensures the newest records are listed first
+
+
+# Signal to enforce FIFO logic
+@receiver(post_save, sender=EventUser)
+def enforce_fifo(sender, instance, **kwargs):
+    """
+    Ensures the number of EventUser records per user does not exceed MAX_EVENT_USER_RECORDS.
+    Oldest records are deleted if the limit is exceeded.
+    """
+    user_event_records = EventUser.objects.filter(user=instance.user).order_by('-created_at')
+
+    if user_event_records.count() > MAX_EVENT_USER_RECORDS:
+        # Get the records to delete (those beyond the max limit)
+        records_to_delete = user_event_records[MAX_EVENT_USER_RECORDS:]
+        for record in records_to_delete:
+            record.delete()
+
+
+class Notification(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, default=1,related_name="notifications")
+    message = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    read = models.BooleanField(default=False)
+
+    def _str_(self):
+        return f"Notification for {self.user.username}"
+    
 
     

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notifications</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        
+        h1 {
+            color: #333;
+        }
+        
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        li {
+            margin-bottom: 15px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        
+    </style>
+</head>
+<body>
+    <h1>Notifications</h1>
+    <ul>
+        {% for notification in notifications %}
+            <li >
+                {{ notification.message }}
+                <br>
+                <small>{{ notification.created_at }}</small>
+                {% if not notification.read %}
+                    <a href="{% url 'mark_notification_as_read' notification.id %}">Mark as Read</a>
+                {% endif %}
+            </li>
+        {% endfor %}
+    </ul>
+    
+    <script>
+        const ws = new WebSocket('ws://localhost:8000/ws/notifications/');
+
+ws.onmessage = function(event) {
+    const notification = JSON.parse(event.data);
+    alert(`New Notification: ${notification.message}`);
+};
+
+    </script>
+</body>
+</html>

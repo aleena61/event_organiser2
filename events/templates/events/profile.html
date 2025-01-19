@@ -192,7 +192,7 @@
             animation: fadeIn 2s ease-in-out;
         }
 
-        #search-bar, #filter-option {
+        #search-bar, #filter-option ,#category-filter {
             padding: 10px;
             font-size: 1em;
             border: 1px solid #ddd;
@@ -200,8 +200,8 @@
             transition: border-color 0.3s;
         }
 
-        #search-bar:focus, #filter-option:focus {
-            border-color: #F6AE2D;
+        #search-bar:focus, #filter-option:focus,#category-filter:focus {
+            border-color: #1E3A8A;
             outline: none;
         }
 
@@ -240,9 +240,16 @@ h2 {
 
 .events-grid {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;  /* Prevent wrapping vertically */
     gap: 20px;
-    justify-content: center;
+    justify-content: flex-start;
+    overflow-x: auto;  /* Allow horizontal scrolling */
+    -ms-overflow-style: none;  /* Hide scrollbar in IE and Edge */
+    scrollbar-width: none;  /* Hide scrollbar in Firefox */
+}
+
+.events-grid::-webkit-scrollbar {
+    display: none;  /* Hide scrollbar in WebKit-based browsers (Chrome, Safari) */
 }
 
 .event-card {
@@ -254,6 +261,7 @@ h2 {
     text-align: center;
     box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
     transition: transform 0.3s;
+    flex-shrink: 0;  /* Prevent shrinking of cards */
 }
 
 .event-card img {
@@ -267,6 +275,7 @@ h2 {
 .event-card:hover {
     transform: scale(1.05);
 }
+
 
         .view-details {
             display: inline-block;
@@ -413,32 +422,7 @@ h2 {
             border-radius: 8px;
         }
 
-        /* Comparison Section */
-        .comparison-section {
-            margin: 20px 0;
-            text-align: center;
-            padding: 20px;
-            background: #fff;
-            border-radius: 8px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-        }
-
-        .comparison-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 20px auto;
-            max-width: 800px;
-        }
-
-        .comparison-table th, .comparison-table td {
-            padding: 10px;
-            border: 1px solid #ddd;
-        }
-
-        .comparison-table th {
-            background: #1E3A8A;
-            color: white;
-        }
+        
         a {
             color: #1E3A8A; /* Navy blue links */
             text-decoration: none;
@@ -491,6 +475,7 @@ h2 {
         
 
     </style>
+    
 </head>
 <body>
 
@@ -597,7 +582,7 @@ h2 {
     <button class="menu-btn" onclick="toggleDropdown()">::</button>
     <div class="dropdown-menu">
         <a  text-align="left">Hey {{user.username}} ! </a><br><br>
-        <a href="/dashboard/">Dashboard</a>
+        <a href="/dashboardevent/">Dashboard</a>
         <a href="/calendar/">Calendar</a>
         <a href="/bookmarked-events/">Bookmarked Events</a>
         <a href="/notifications/">Notifications</a>
@@ -635,7 +620,28 @@ h2 {
         </div>
     </section>
     
-
+    <section id="nearby-events">
+        <h2>Nearby Events</h2>
+        <div class="events-grid">
+            {% for event in nearby_events %}
+            <div class="event-card">
+                <img src="{{ event.first_photo_url }}" alt="{{ event.name }} Image">
+                <h2>{{ event.name }}</h2>
+                <p>Place: {{ event.place }}</p>
+                <p>Date: {{ event.date }}</p>
+                <a href="{% url 'event_detail' event.id %}" class="view-details">View Details</a>
+                <button onclick="setReminder('{{ event.id }}')">Set Reminder</button>
+                <button onclick="bookmarkEvent('{{ event.id }}', this)">
+                    {% if user in event.bookmarked_by.all %}
+                        Unbookmark
+                    {% else %}
+                        Bookmark
+                    {% endif %}
+                </button>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
     <section id="trending-events">
         <h2>Trending Events</h2>
 <div class="events-grid">
@@ -682,6 +688,77 @@ h2 {
    
 </div>
 </section>
+<section id="upcoming-events">
+    <h2>Upcoming Events</h2>
+    <div class="events-grid">
+        {% for event in upcoming_events %}
+        <div class="event-card">
+            <img src="{{ event.first_photo_url }}" alt="{{ event.name }} Image">
+            <h2>{{ event.name }}</h2>
+            <p>Place: {{ event.place }}</p>
+            <p>Date: {{ event.date }}</p>
+            <a href="{% url 'event_detail' event.id %}" class="view-details">View Details</a>
+            <button onclick="setReminder('{{ event.id }}')">Set Reminder</button>
+            <button onclick="bookmarkEvent('{{ event.id }}', this)">
+                {% if user in event.bookmarked_by.all %}
+                    Unbookmark
+                {% else %}
+                    Bookmark
+                {% endif %}
+            </button>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+<section id="ongoing-events">
+    <h2>Ongoing Events</h2>
+    <div class="events-grid">
+        {% for event in ongoing_events %}
+        <div class="event-card">
+            <img src="{{ event.first_photo_url }}" alt="{{ event.name }} Image">
+            <h2>{{ event.name }}</h2>
+            <p>Place: {{ event.place }}</p>
+            <p>Date: {{ event.date }}</p>
+            <a href="{% url 'event_detail' event.id %}" class="view-details">View Details</a>
+            <button onclick="setReminder('{{ event.id }}')">Set Reminder</button>
+            <button onclick="bookmarkEvent('{{ event.id }}', this)">
+                {% if user in event.bookmarked_by.all %}
+                    Unbookmark
+                {% else %}
+                    Bookmark
+                {% endif %}
+            </button>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+<section id="recent-visited-events">
+    <h2>Recently Visited Events</h2>
+    <div class="events-grid">
+        {% for event in recent_visited_events %}
+        <div class="event-card">
+            <img src="{{ event.first_photo_url }}" alt="{{ event.name }} Image">
+            <h2>{{ event.name }}</h2>
+            <p>Place: {{ event.place }}</p>
+            <p>Date: {{ event.date }}</p>
+            <a href="{% url 'event_detail' event.id %}" class="view-details">View Details</a>
+            <button onclick="setReminder('{{ event.id }}')">Set Reminder</button>
+            <button onclick="bookmarkEvent('{{ event.id }}', this)">
+                {% if user in event.bookmarked_by.all %}
+                    Unbookmark
+                {% else %}
+                    Bookmark
+                {% endif %}
+            </button>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+
+
 </div>
 
 <!-- Live Streaming -->
@@ -698,28 +775,7 @@ h2 {
 </div>
 <!-- Floating Add Event Button -->
 <button class="add-event-btn" onclick="window.location.href='/add_event/'">+</button>
-<!-- Comparison Section -->
-<div class="comparison-section">
-    <h2>Competition Comparison</h2>
-    <table class="comparison-table">
-        <thead>
-            <tr>
-                <th>Competition</th>
-                <th>Prize</th>
-                <th>Date</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for competition in competitions %}
-            <tr>
-                <td>{{ competition.name }}</td>
-                <td>{{ competition.prize }}</td>
-                <td>{{ competition.date }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
+
 
 <!-- Map Section
 <div class="map-container">
@@ -824,56 +880,111 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function searchEvents() {
-    var searchText = document.getElementById('search-bar').value.toLowerCase();
-    var filterOption = document.getElementById('filter-option').value;
-    var categoryFilter = document.getElementById('category-filter').value.toLowerCase();
-    var eventCards = document.querySelectorAll('.event-card');
-    var searchResultsFound = false; // Flag to check if any matches were found
-    var searchResultsContainer = document.getElementById('search-results');
+    // var searchText = document.getElementById('search-bar').value.toLowerCase();
+    // var filterOption = document.getElementById('filter-option').value;
+    // var categoryFilter = document.getElementById('category-filter').value.toLowerCase();
+    // var eventCards = document.querySelectorAll('.event-card');
+    // var searchResultsFound = false; // Flag to check if any matches were found
+    // var searchResultsContainer = document.getElementById('search-results');
 
-    // Make sure search results section is shown when the function is called
-    searchResultsContainer.style.display = 'block';
+    // // Make sure search results section is shown when the function is called
+    // searchResultsContainer.style.display = 'block';
     
+    // // Reset the search results display
+    // searchResultsContainer.querySelector('.events-grid').innerHTML = ''; // Clear previous search results
 
-    // Reset the search results display
-    searchResultsContainer.querySelector('.events-grid').innerHTML = ''; // Clear previous search results
+    // eventCards.forEach(function (card) {
+    //     var eventName = card.querySelector('h2').textContent.toLowerCase();
+    //     var eventPlace = card.querySelector('p').textContent.toLowerCase();
+    //     var eventDate = card.querySelector('p:nth-of-type(2)').textContent.toLowerCase();
+    //     var eventCategory = card.getAttribute('data-category').toLowerCase();
 
-    eventCards.forEach(function (card) {
-        var eventName = card.querySelector('h2').textContent.toLowerCase();
-        var eventPlace = card.querySelector('p').textContent.toLowerCase();
-        var eventDate = card.querySelector('p:nth-of-type(2)').textContent.toLowerCase();
-        var eventCategory = card.getAttribute('data-category').toLowerCase();
+    //     let matches = false;
 
-        let matches = false;
+    //     // Match conditions based on selected filter
+    //     if (filterOption === 'all') {
+    //         matches = eventName.includes(searchText) || eventPlace.includes(searchText) || eventDate.includes(searchText);
+    //     } else if (filterOption === 'name') {
+    //         matches = eventName.includes(searchText);
+    //     } else if (filterOption === 'place') {
+    //         matches = eventPlace.includes(searchText);
+    //     } else if (filterOption === 'date') {
+    //         matches = eventDate.includes(searchText);
+    //     } else if (filterOption === 'category') {
+    //         matches = eventCategory === categoryFilter;
+    //     }
+        
+    //     // Apply the filter and display matching events
+    //     if (matches && (categoryFilter === '' || eventCategory === categoryFilter)) {
+    //         // Append matching events to search results
+    //         var eventCardClone = card.cloneNode(true); // Clone the card to add to search results
+    //         searchResultsContainer.querySelector('.events-grid').appendChild(eventCardClone);
+    //         eventCardClone.style.display = 'block'; // Ensure the event is visible
+    //         searchResultsFound = true;
+    //     }
+    // });
 
-        // Match conditions based on selected filter
-        if (filterOption === 'all') {
-            matches = eventName.includes(searchText) || eventPlace.includes(searchText) || eventDate.includes(searchText);
-        } else if (filterOption === 'name') {
-            matches = eventName.includes(searchText);
-        } else if (filterOption === 'place') {
-            matches = eventPlace.includes(searchText);
-        } else if (filterOption === 'date') {
-            matches = eventDate.includes(searchText);
-        } else if (filterOption === 'category') {
-            matches = eventCategory === categoryFilter;
+    // // If no results were found, display a message
+    // if (!searchResultsFound && searchText !== '') {
+    //     searchResultsContainer.querySelector('.events-grid').innerHTML = '<p>No events found matching your search.</p>';
+    // }
+       
+        var searchText = document.getElementById('search-bar').value.toLowerCase();
+        var filterOption = document.getElementById('filter-option').value;
+        var categoryFilter = document.getElementById('category-filter').value.toLowerCase();
+        var eventCards = document.querySelectorAll('.event-card');
+        var searchResultsFound = false; // Flag to check if any matches were found
+        var searchResultsContainer = document.getElementById('search-results');
+    
+        // Make sure search results section is shown when the function is called
+        searchResultsContainer.style.display = 'block';
+        
+        // Reset the search results display
+        searchResultsContainer.querySelector('.events-grid').innerHTML = ''; // Clear previous search results
+    
+        // Use a Set to track unique events
+        var uniqueEvents = new Set();
+    
+        eventCards.forEach(function (card) {
+            var eventName = card.querySelector('h2').textContent.toLowerCase();
+            var eventPlace = card.querySelector('p').textContent.toLowerCase();
+            var eventDate = card.querySelector('p:nth-of-type(2)').textContent.toLowerCase();
+            var eventCategory = card.getAttribute('data-category').toLowerCase();
+    
+            let matches = false;
+    
+            // Match conditions based on selected filter
+            if (filterOption === 'all') {
+                matches = eventName.includes(searchText) || eventPlace.includes(searchText) || eventDate.includes(searchText) || eventCategory.includes(searchText);
+            } else if (filterOption === 'name') {
+                matches = eventName.includes(searchText);
+            } else if (filterOption === 'place') {
+                matches = eventPlace.includes(searchText);
+            } else if (filterOption === 'date') {
+                matches = eventDate.includes(searchText);
+            } else if (filterOption === 'category') {
+                matches = eventCategory.includes(searchText);
+            }
+    
+            // Additional filter by category
+            if (matches && categoryFilter && eventCategory !== categoryFilter) {
+                matches = false;
+            }
+    
+            if (matches) {
+                // Check if the event is already in the uniqueEvents set
+                if (!uniqueEvents.has(eventName)) {
+                    uniqueEvents.add(eventName); // Add the event to the set
+                    searchResultsContainer.querySelector('.events-grid').appendChild(card.cloneNode(true)); // Append the event card to the search results
+                    searchResultsFound = true;
+                }
+            }
+        });
+    
+        if (!searchResultsFound) {
+            searchResultsContainer.querySelector('.events-grid').innerHTML = '<p>No events found.</p>';
         }
 
-        // Apply the filter and display matching events
-        if (matches && (categoryFilter === '' || eventCategory === categoryFilter)) {
-            // Append matching events to search results
-            var eventCardClone = card.cloneNode(true); // Clone the card to add to search results
-            searchResultsContainer.querySelector('.events-grid').appendChild(eventCardClone);
-            eventCardClone.style.display = 'block'; // Ensure the event is visible
-            searchResultsFound = true;
-        }
-    });
-
-    // If no results were found, display a message
-    if (!searchResultsFound && searchText !== '') {
-        searchResultsContainer.querySelector('.events-grid').innerHTML = '<p>No events found matching your search.</p>';
-    }
-    
     // If search text is empty, hide the search results
     if (searchText === '') {
         searchResultsContainer.style.display = 'none'; // Hide the results section when search text is empty

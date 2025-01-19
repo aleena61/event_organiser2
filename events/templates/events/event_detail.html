@@ -480,14 +480,15 @@
 <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
 <script>
     // Leaflet map initialization for event location
-    var map = L.map('map').setView([{{ event.latitude }}, {{ event.longitude }}], 13);
+    var map = L.map('map').setView([{{ event.latitude|escapejs }}, {{ event.longitude|escapejs }}], 13);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(map);
-    L.marker([{{ event.latitude }}, {{ event.longitude }}]).addTo(map);
+    L.marker([{{ event.latitude|escapejs }}, {{ event.longitude|escapejs }}]).addTo(map);
 
     let currentSection = 1; // Starting with section 1
-
+</script>
+<script>
     // Change section based on arrow button click
     function changeSection(direction) {
         let totalSections = 3; // Total number of sections

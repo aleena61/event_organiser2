@@ -22,8 +22,8 @@
         body {
             font-family: Arial, sans-serif;
             line-height: 1.6;
-            background: linear-gradient(to bottom right, #1E3A8A, #A7C7E7S);
-            color : #333;
+            background: linear-gradient(to bottom right, #1E3A8A, #A7C7E7);
+            color: #333;
         }
 
         /* Loader Animation */
@@ -154,7 +154,7 @@
             animation: fadeIn 2s ease-in-out;
         }
 
-        #search-bar, #filter-option {
+        #search-bar, #filter-option ,#category-filter {
             padding: 10px;
             font-size: 1em;
             border: 1px solid #ddd;
@@ -162,20 +162,21 @@
             transition: border-color 0.3s;
         }
 
-        #search-bar:focus, #filter-option:focus {
-            border-color: #F6AE2D;
+        #search-bar:focus, #filter-option:focus,#category-filter:focus {
+            border-color: #1E3A8A;
             outline: none;
         }
+
 
         button {
             padding: 10px 15px;
             font-size: 1em;
-            background-color: ##1E3A8A;
-            color: white;
-            border: none;
-            cursor: pointer;
-            border-radius: 4px;
-            transition: background-color 0.3s, transform 0.3s;
+        background-color: #1E3A8A;
+        color: white;
+        border: none;
+        cursor: pointer;
+        border-radius: 4px;
+        transition: background-color 0.3s, transform 0.3s;
         }
 
         button:hover {
@@ -202,9 +203,16 @@ h2 {
 
 .events-grid {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;  /* Prevent wrapping vertically */
     gap: 20px;
-    justify-content: center;
+    justify-content: flex-start;
+    overflow-x: auto;  /* Allow horizontal scrolling */
+    -ms-overflow-style: none;  /* Hide scrollbar in IE and Edge */
+    scrollbar-width: none;  /* Hide scrollbar in Firefox */
+}
+
+.events-grid::-webkit-scrollbar {
+    display: none;  /* Hide scrollbar in WebKit-based browsers (Chrome, Safari) */
 }
 
 .event-card {
@@ -216,6 +224,7 @@ h2 {
     text-align: center;
     box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
     transition: transform 0.3s;
+    flex-shrink: 0;  /* Prevent shrinking of cards */
 }
 
 .event-card img {
@@ -444,15 +453,55 @@ h2 {
 
 <!-- Search -->
 <div class="search-container">
-    <input type="text" id="search-bar" placeholder="Search events...">
-    <select id="filter-option">
+    <input type="text" id="search-bar" placeholder="Search events..." onkeyup="searchEvents()">
+    <select id="filter-option" onchange="searchEvents()">
         <option value="all">All</option>
         <option value="name">Name</option>
         <option value="place">Place</option>
         <option value="date">Date</option>
+        <option value="category">Category</option>
+    </select>
+    <select id="category-filter" onchange="searchEvents()">
+        <option value="">Select Category</option>
+        <option value="cultural">Cultural</option>
+        <option value="Music">Music</option>
+        <option value="Sports">Sports</option>
+        <option value="Art">Art</option>
+        <option value="Tech">Tech</option>
+        <option value="Food">Food</option>
     </select>
     <button onclick="searchEvents()">Search</button>
 </div>
+<!-- Search Results Section -->
+<section id="search-results" style="display:none;"> <!-- Hidden initially -->
+    <h2>Search Results</h2>
+    <div class="events-grid">
+        <!-- Results will be displayed here -->
+    </div>
+</section>
+<!-- Display search results -->
+<section id="search-results" style="display:none;">
+    <h2>Search Results</h2>
+    <div class="events-grid" id="events-grid">
+        {% for event in events %}
+        <div class="event-card" data-category="{{ event.category }}">
+            <img src="{{ event.first_photo_url }}" alt="{{ event.name }} Image">
+            <h2>{{ event.name }}</h2>
+            <p>Place: {{ event.place }}</p>
+            <p>Date: {{ event.date }}</p>
+            <a href="{% url 'event_detail' event.id %}" class="view-details">View Details</a>
+            <button onclick="setReminder('{{ event.id }}')">Set Reminder</button>
+            <button onclick="bookmarkEvent('{{ event.id }}', this)">
+                {% if user in event.bookmarked_by.all %}
+                    Unbookmark
+                {% else %}
+                    Bookmark
+                {% endif %}
+            </button>
+        </div>
+        {% endfor %}
+    </div>
+</section>
 
 <div class="menu-container">
     <button class="menu-btn" onclick="toggleDropdown()">::</button>
@@ -507,7 +556,51 @@ h2 {
     </section>
 </div>
 
+<section id="upcoming-events">
+    <h2>Upcoming Events</h2>
+    <div class="events-grid">
+        {% for event in upcoming_events %}
+        <div class="event-card">
+            <img src="{{ event.first_photo_url }}" alt="{{ event.name }} Image">
+            <h2>{{ event.name }}</h2>
+            <p>Place: {{ event.place }}</p>
+            <p>Date: {{ event.date }}</p>
+            <a href="{% url 'event_detail' event.id %}" class="view-details">View Details</a>
+            <button onclick="setReminder('{{ event.id }}')">Set Reminder</button>
+            <button onclick="bookmarkEvent('{{ event.id }}', this)">
+                {% if user in event.bookmarked_by.all %}
+                    Unbookmark
+                {% else %}
+                    Bookmark
+                {% endif %}
+            </button>
+        </div>
+        {% endfor %}
+    </div>
+</section>
 
+<section id="ongoing-events">
+    <h2>Ongoing Events</h2>
+    <div class="events-grid">
+        {% for event in ongoing_events %}
+        <div class="event-card">
+            <img src="{{ event.first_photo_url }}" alt="{{ event.name }} Image">
+            <h2>{{ event.name }}</h2>
+            <p>Place: {{ event.place }}</p>
+            <p>Date: {{ event.date }}</p>
+            <a href="{% url 'event_detail' event.id %}" class="view-details">View Details</a>
+            <button onclick="setReminder('{{ event.id }}')">Set Reminder</button>
+            <button onclick="bookmarkEvent('{{ event.id }}', this)">
+                {% if user in event.bookmarked_by.all %}
+                    Unbookmark
+                {% else %}
+                    Bookmark
+                {% endif %}
+            </button>
+        </div>
+        {% endfor %}
+    </div>
+</section>
 <!-- Live Streaming -->
 <div class="live-stream-section">
     <h2>Live Streaming</h2>
@@ -521,28 +614,6 @@ h2 {
     <button>Subscribe</button>
 </div>
 
-<!-- Comparison Section -->
-<div class="comparison-section">
-    <h2>Competition Comparison</h2>
-    <table class="comparison-table">
-        <thead>
-            <tr>
-                <th>Competition</th>
-                <th>Prize</th>
-                <th>Date</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for competition in competitions %}
-            <tr>
-                <td>{{ competition.name }}</td>
-                <td>{{ competition.prize }}</td>
-                <td>{{ competition.date }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
 
 <!-- Map Section
 <div class="map-container">
@@ -587,35 +658,7 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     document.addEventListener("DOMContentLoaded", function () {
         document.getElementById("loader").style.display = "none";
     });
-    function searchEvents() {
-        var searchText = document.getElementById('search-bar').value.toLowerCase();
-        var filterOption = document.getElementById('filter-option').value;
-        var eventCards = document.querySelectorAll('.event-card');
-
-        eventCards.forEach(function (card) {
-            var eventName = card.querySelector('h2').textContent.toLowerCase();
-            var eventPlace = card.querySelector('p').textContent.toLowerCase();
-            var eventDate = card.querySelector('p:nth-of-type(2)').textContent.toLowerCase();
-
-            let matches = false;
-
-            if (filterOption === 'all') {
-                matches = eventName.includes(searchText) || eventPlace.includes(searchText) || eventDate.includes(searchText);
-            } else if (filterOption === 'name') {
-                matches = eventName.includes(searchText);
-            } else if (filterOption === 'place') {
-                matches = eventPlace.includes(searchText);
-            } else if (filterOption === 'date') {
-                matches = eventDate.includes(searchText);
-            }
-
-            if (matches) {
-                card.style.display = 'block';
-            } else {
-                card.style.display = 'none';
-            }
-        });
-    }
+   
     function toggleDropdown() {
     const dropdown = document.querySelector('.dropdown-menu');
     dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
@@ -633,35 +676,66 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 </script>
 <script>
     function searchEvents() {
-        // Get the search term and filter option
-        const searchTerm = document.getElementById("search-bar").value.toLowerCase();
-        const filterOption = document.getElementById("filter-option").value;
+    var searchText = document.getElementById('search-bar').value.toLowerCase();
+        var filterOption = document.getElementById('filter-option').value;
+        var categoryFilter = document.getElementById('category-filter').value.toLowerCase();
+        var eventCards = document.querySelectorAll('.event-card');
+        var searchResultsFound = false; // Flag to check if any matches were found
+        var searchResultsContainer = document.getElementById('search-results');
+    
+        // Make sure search results section is shown when the function is called
+        searchResultsContainer.style.display = 'block';
         
-        // Get all event cards
-        const events = document.querySelectorAll(".event-card");
-
-        // Loop through each event and check if it matches the search term
-        events.forEach(event => {
-            // Get the relevant text based on the selected filter option
-            let eventText = "";
-            if (filterOption === "name") {
-                eventText = event.querySelector("h2").textContent.toLowerCase();
-            } else if (filterOption === "place") {
-                eventText = event.querySelector("p:nth-of-type(1)").textContent.toLowerCase(); // Place
-            } else if (filterOption === "date") {
-                eventText = event.querySelector("p:nth-of-type(2)").textContent.toLowerCase(); // Date
-            } else {
-                // Search across all fields (name, place, and date)
-                eventText = event.textContent.toLowerCase();
+        // Reset the search results display
+        searchResultsContainer.querySelector('.events-grid').innerHTML = ''; // Clear previous search results
+    
+        // Use a Set to track unique events
+        var uniqueEvents = new Set();
+    
+        eventCards.forEach(function (card) {
+            var eventName = card.querySelector('h2').textContent.toLowerCase();
+            var eventPlace = card.querySelector('p').textContent.toLowerCase();
+            var eventDate = card.querySelector('p:nth-of-type(2)').textContent.toLowerCase();
+            var eventCategory = card.getAttribute('data-category').toLowerCase();
+    
+            let matches = false;
+    
+            // Match conditions based on selected filter
+            if (filterOption === 'all') {
+                matches = eventName.includes(searchText) || eventPlace.includes(searchText) || eventDate.includes(searchText) || eventCategory.includes(searchText);
+            } else if (filterOption === 'name') {
+                matches = eventName.includes(searchText);
+            } else if (filterOption === 'place') {
+                matches = eventPlace.includes(searchText);
+            } else if (filterOption === 'date') {
+                matches = eventDate.includes(searchText);
+            } else if (filterOption === 'category') {
+                matches = eventCategory.includes(searchText);
             }
-
-            // Show or hide the event card based on the search match
-            if (eventText.includes(searchTerm)) {
-                event.style.display = "block"; // Show the event
-            } else {
-                event.style.display = "none"; // Hide the event
+    
+            // Additional filter by category
+            if (matches && categoryFilter && eventCategory !== categoryFilter) {
+                matches = false;
+            }
+    
+            if (matches) {
+                // Check if the event is already in the uniqueEvents set
+                if (!uniqueEvents.has(eventName)) {
+                    uniqueEvents.add(eventName); // Add the event to the set
+                    searchResultsContainer.querySelector('.events-grid').appendChild(card.cloneNode(true)); // Append the event card to the search results
+                    searchResultsFound = true;
+                }
             }
         });
+    
+        if (!searchResultsFound) {
+            searchResultsContainer.querySelector('.events-grid').innerHTML = '<p>No events found.</p>';
+        }
+
+    // If search text is empty, hide the search results
+    if (searchText === '') {
+        searchResultsContainer.style.display = 'none'; // Hide the results section when search text is empty
+    }
     }
 </script>
 
