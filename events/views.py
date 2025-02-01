@@ -18,8 +18,8 @@ from django.http import Http404, JsonResponse
 from datetime import datetime,timedelta, timezone
 from django.core.mail import send_mail
 from django.db.models import Sum
-from .models import Notification
 from datetime import timedelta
+from .models import Notification, Event
 from django.utils import timezone
 
 genai.configure(api_key="AIzaSyBx731nHQN7dUUT4sAodinK09LmWu5RGRY")
@@ -27,19 +27,6 @@ genai.configure(api_key="AIzaSyBx731nHQN7dUUT4sAodinK09LmWu5RGRY")
 
 from django.shortcuts import render
 from django.db.models import Sum
-
-@login_required
-def notifications_list(request):
-    notifications = request.user.notifications.all().order_by('-created_at')
-    return render(request, 'events/notifications.html', {'notifications': notifications})
-
-@login_required
-def mark_notification_as_read(request, notification_id):
-    notification = get_object_or_404(Notification, id=notification_id, user=request.user)
-    notification.is_read = True
-    notification.save()
-    return redirect('notifications_list')
-
 
 def event_dashboard(request):
     # Retrieve all events created by the logged-in user
@@ -66,15 +53,63 @@ def delete_event(request, event_id):
     event.delete()
     return redirect('event_dashboard')
 
-def calendar_view(request):
+# def calendar_view(request):
   
+#     current_date = datetime.now()
+#     current_month = current_date.month
+#     current_year = current_date.year
+
+#     # Calculate the previous and next years
+#     prev_year = current_year - 1
+#     next_year = current_year + 1
+
+#     # Handle month and year query parameters to select any month/year
+#     month = request.GET.get('month', current_month)
+#     year = request.GET.get('year', current_year)
+
+#     # Ensure month and year are integers
+#     month = int(month)
+#     year = int(year)
+
+#     # Calculate the first and last day of the selected month
+#     first_day_of_month = datetime(year, month, 1)
+
+#     if month == 12:
+#         last_day_of_month = datetime(year + 1, 1, 1) - timedelta(days=1)
+#     else:
+#         last_day_of_month = datetime(year, month + 1, 1) - timedelta(days=1)
+
+#     # Get all events in the current month
+#     events_in_month = Event.objects.filter(date__range=[first_day_of_month, last_day_of_month])
+
+#     # Structure the calendar days with events
+#     days_in_month = []
+#     for day in range(1, last_day_of_month.day + 1):
+#         date = datetime(year, month, day)
+#         day_events = events_in_month.filter(date=date)
+#         days_in_month.append({
+#             'day': day,
+#             'events': day_events,
+#             'date': date,
+#         })
+
+#     return render(request, 'events/calendar.html', {
+#         'days_in_month': days_in_month,
+#         'current_month': month,
+#         'current_year': year,
+#         'prev_year': prev_year,
+#         'next_year': next_year,  # Pass previous and next years
+#     })
+
+
+from datetime import datetime, timedelta
+from django.shortcuts import render
+from .models import Event
+
+def calendar_view(request):
     current_date = datetime.now()
     current_month = current_date.month
     current_year = current_date.year
-
-    # Calculate the previous and next years
-    prev_year = current_year - 1
-    next_year = current_year + 1
 
     # Handle month and year query parameters to select any month/year
     month = request.GET.get('month', current_month)
@@ -106,18 +141,21 @@ def calendar_view(request):
             'date': date,
         })
 
+    prev_year = current_year - 1
+    next_year = current_year + 1
+
     return render(request, 'events/calendar.html', {
         'days_in_month': days_in_month,
         'current_month': month,
         'current_year': year,
         'prev_year': prev_year,
-        'next_year': next_year,  # Pass previous and next years
+        'next_year': next_year,
     })
+
 
 @login_required(login_url='login_view')
 def add_event(request):
     if request.method == 'POST':
-      
         event_form = EventForm(request.POST)
         competition_form = CompetitionForm(request.POST)
         
@@ -131,9 +169,7 @@ def add_event(request):
         if event_form.is_valid():
             # Save Event
             event = event_form.save(commit=False)
-            
             event.user = request.user
-
             event.status = 'pending'  # Default to pending status
 
             if latitude and longitude:
@@ -141,6 +177,14 @@ def add_event(request):
                 event.longitude = longitude
 
             event = event_form.save()
+
+            # Create notification for admin
+            admin_user = User.objects.filter(username='john').first()
+            if admin_user:
+                Notification.objects.create(
+                    user=admin_user,
+                    message=f"{request.user.username} has requested to add an event: {event.name}.",
+                )
 
             # Save Competition
             competitions_data = request.POST.getlist('competitions[][name]')
@@ -165,9 +209,8 @@ def add_event(request):
                 OldPhoto.objects.create(event=event, image=old_photo)
                 notify_user(event)
             
-            Notification.objects.create(
-                message=f"New event request: {event.name} by {request.user}"
-            )
+           
+            
         return redirect('event_detail', event_id=event.id)
 
 
@@ -211,16 +254,16 @@ def home(request):
 def event_detail(request, event_id):
     # Fetch the event by ID
     event = get_object_or_404(Event, id=event_id)
-    user = request.user
 
     # Increment visits for the event
     event.visits += 1
     event.save()
-
-    # Update or create an EventUser record to mark it as visited
-    event_user, created = EventUser.objects.get_or_create(user=user, event=event)
-    event_user.visited = True
-    event_user.save()
+    if request.user.is_authenticated:
+        user=request.user
+        # Update or create an EventUser record to mark it as visited
+        event_user, created = EventUser.objects.get_or_create(user=user, event=event)
+        event_user.visited = True
+        event_user.save()
 
 
 
@@ -549,20 +592,54 @@ def delete_event(request, event_id):
         notify_user(event)
         return redirect('event_detail', event_id=event.id)  # Delete the event
     return redirect('profile')  # Redirect to the event list or wherever you prefer
-
+#approve or reject or pending
+@login_required
 def manage_events(request):
     events = Event.objects.all()  # Fetch all events
+    
     if request.method == 'POST':
         event_id = request.POST.get('event_id')
-        action = request.POST.get('action')  # 'approve', 'reject', or 'pending'
-        event = Event.objects.get(id=event_id)
-        if action == 'approve':
-            event.status = 'Approved'
-        elif action == 'reject':
-            event.status = 'Rejected'
-        elif action == 'pending':
-            event.status = 'Pending'
-        event.save()
+        action = request.POST.get('action')
+        
+        try:
+            event = Event.objects.get(id=event_id)
+            
+            if action == 'approve':
+                event.status = 'Approved'
+                # Create notification for approval
+                Notification.objects.create(
+                    user=event.user,
+                    message=f"Your event request '{event.name}' has been approved.",
+                    
+                )
+                
+            elif action == 'reject':
+                event.status = 'Rejected'
+                # Create notification for rejection
+                Notification.objects.create(
+                    user=event.user,
+                    message=f"Your event request '{event.name}' has been rejected.",
+                   
+                )
+                
+            elif action == 'pending':
+                event.status = 'Pending'
+                # Create notification for pending status
+                Notification.objects.create(
+                    user=event.user,
+                    message=f"Your event '{event.name}' has been marked as pending.",
+                    
+                
+                )
+            
+            event.save()
+            messages.success(request, f"Event has been {action}d successfully.")
+            
+        except Event.DoesNotExist:
+            messages.error(request, "Event not found.")
+        except Exception as e:
+            messages.error(request, f"Error processing request: {str(e)}")
+    
     return render(request, 'events/manage_events.html', {'events': events})
 from django.core.mail import send_mail
 
@@ -623,6 +700,7 @@ def dashboard_view(request):
         'events_data': json.dumps(list(events_data)),
     }
     
+    # return render(request, 'events/dashboard.html', context)
     return render(request, 'events/dashboard.html', context)
 
 
@@ -697,6 +775,22 @@ def reject_deletion(request):
     
 from django.shortcuts import render, get_object_or_404
 from .models import Event
+
+
+@login_required
+def notifications(request):
+    # Fetch unread notifications for the logged-in user
+    notifications = request.user.notifications.filter(is_read=False)
+    return render(request, 'events/notifications.html', {'notifications': notifications})
+@login_required
+def mark_notification_as_read(request, notification_id):
+    notification = get_object_or_404(Notification, id=notification_id, user=request.user)
+    notification.is_read = True
+    notification.save()
+    return redirect('notifications')
+
+
+
 
 
 

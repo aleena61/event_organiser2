@@ -14,7 +14,16 @@ from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'  # Default session engine
+# Set the session cookie name (optional)
+SESSION_COOKIE_NAME = 'sessionid'
 
+# Ensure sessions are not expired quickly
+SESSION_COOKIE_AGE = 3600  # Session lasts for 1 hour
+
+# Enable secure cookies for HTTPS
+SESSION_COOKIE_SECURE = False  # Set to True for HTTPS
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True  # Session expires when the browser is closed
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
@@ -43,10 +52,10 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
@@ -135,3 +144,5 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'festfeed00@gmail.com'
 EMAIL_HOST_PASSWORD = 'iaie zryq vwpw tukn'  # Use an app password if using Gmail
+LOGIN_URL = '/login_view/'
+LOGIN_REDIRECT_URL = '/profile/'

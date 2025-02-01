@@ -1,292 +1,287 @@
+
 {% load static %}
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Calendar</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Kaushan+Script&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/monthSelect/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Kaushan+Script&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Kaushan+Script&display=swap" rel="stylesheet">
     <style>
-        /* Basic Reset */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+ :root {
+    --primary-color: #1E3A8A;   /* Dark Blue for writing and borders */
+    --secondary-color: #000000; /* Black */
+    --accent-color: #ffffff;    /* White Background */
+    --highlight-color: lightgrey; /* Lighter Blue for Hover */
+    --border-color: #1E3A8A;    /* Blue Border for each tile */
+    --event-popup-bg: #ffffff;  /* White Background for Event Popup */
+    --event-popup-text: #1E3A8A;/* Dark Blue Text in Event Popup */
+    --tab-button-bg: #1E3A8A;   /* Dark Blue for Tab Buttons */
+    --tab-button-hover-bg: #0288d1; /* Lighter Blue for Hover */
+    --tab-content-bg: #ffffff;  /* White for Tab Content Background */
+    --tab-shadow: rgba(0, 0, 0, 0.1); /* Light Black Shadow */
+    --text-color: #1E3A8A;      /* Dark Blue for Event Count Text */
+}
 
-        body {
-            font-family: Arial, sans-serif;
-            line-height: 1.6;
-            background: linear-gradient(to bottom right, #1E3A8A, #A7C7E7S);
-            color: #fff;
-        }
+body {
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
+    background: var(--accent-color); /* White background for the body */
+    color: var(--primary-color); /* Dark Blue for text */
+}
 
-        /* Header Section */
-       header {
-            background-color: rgba(255, 255, 255, 0.9);
-            color: #1E3A8A;
-            padding: 20px;
-            text-align: center;
-            position: relative;
-            animation: fadeInDown 2s ease-out;
-        }
+header {
+    background-color: var(--accent-color);
+    color: var(--primary-color);
+    padding: 20px;
+    text-align: center;
+}
 
-        header h1 {
-            margin: 0;
-            font-size: 3em;
-            font-family: 'Kaushan Script', cursive;
-            animation: pulse 1.5s infinite;
-        }
+header h1 {
+    font-family: 'Kaushan Script', cursive;
+    font-size: 3em;
+}
 
-        /* Navigation Bar */
-        /* nav {
-            background-color: #1E3A8A;
-            position: sticky;
-            top: 0;
-            padding: 10px 0;
-            z-index: 999;
-            animation: slideIn 2s ease-out;
-        } */
-        nav ul {
-            list-style: none;
-            display: flex;
-            justify-content: center;
-        }
+/* Calendar Section */
+.calendar-container {
+    max-width: 1000px;
+    margin: auto;
+    text-align: center;
+    padding: 20px;
+}
 
+.calendar {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 15px;
+    margin-top: 20px;
+    /* Ensuring the calendar adjusts to a square when needed */
+    grid-auto-rows: minmax(100px, auto);
+}
 
-        nav ul li {
-            margin: 0 15px;
-        }
+.calendar .day {
+    padding: 25px;
+    background-color: var(--accent-color); /* White background for each day */
+    border: 2px solid var(--border-color); /* Blue border for each tile */
+    border-radius: 10px;
+    position: relative;
+    height: 120px;
+    cursor: pointer;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Light shadow for day tiles */
+    transition: all 0.3s ease;
+    font-size: 1.5em; /* Larger font size for day numbers */
+}
 
-        nav ul li a {
-            color: white;
-            text-decoration: none;
-            font-size: 1.2em;
-            padding: 10px 20px;
-            border-radius: 4px;
-            transition: background-color 0.3s, transform 0.3s;
-        }
+.calendar .day:hover {
+    background-color: var(--highlight-color); /* Lighter blue on hover */
+    transform: scale(1.05);
+}
 
-        nav ul li a:hover {
-            background-color: #A7C7E7;
-            transform: scale(1.1);
-        }
+.calendar .day.with-events {
+    background: var(--highlight-color); /* Lighter blue background if events are present */
+}
 
-        /* Tab Section */
-        .tabs {
-            display: flex;
-            justify-content: center;
-            margin: 20px 0;
-        }
-        .tabs button {
-            padding: 12px 30px;
-            margin: 0 10px;
-            background-color: #1E3A8A;
-            color: white;
-            border: none;
-            border-radius: 25px;
-            font-size: 1.1em;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
+.calendar .day.current-day {
+    background: linear-gradient(135deg, #80deea, #4dd0e1);
+    border: 2px solid #0288d1;
+}
 
-        .tabs button:hover,
-        .tabs button.active {
-            background-color: #1E3A8A;
-            transform: translateY(-3px);
-        }
+.event-popup {
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    background-color: var(--event-popup-bg); /* White background for event popup */
+    padding: 10px;
+    font-size: 0.9em;
+    color: var(--event-popup-text); /* Dark Blue text in event popup */
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(235, 233, 233);
+    display: none;
+    z-index: 10;
+}
 
-        /* Tab Content */
-        .tab-content {
-            display: none;
-            padding: 20px;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            max-width: 1000px;
-            margin: 0 auto;
-            animation: fadeIn 0.5s;
-        }
+.calendar .day:hover .event-popup {
+    display: block;
+}
 
-        .tab-content.active {
-            display: block;
-        }
+.event-count {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 16px; /* Larger size for event count */
+    font-weight: bold;
+    color: var(--text-color); /* Dark Blue text for event count */
+}
 
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
-            to {
-                opacity: 1;
-            }
-        }
+.tabs {
+    display: flex;
+    justify-content: center;
+    margin: 20px 0;
+    flex-wrap: wrap; /* Allow tabs to wrap in smaller screens */
+}
 
-        /* Calendar Section */
-        .calendar-container {
-            max-width: 1000px;
-            margin: auto;
-            text-align: center;
-            padding: 20px;
-        }
+.tabs button {
+    padding: 12px 30px;
+    margin: 0 10px;
+    background-color: var(--primary-color); /* Dark Blue for tab buttons */
+    color: var(--accent-color); /* White text on tab buttons */
+    border: none;
+    border-radius: 25px;
+    font-size: 1.1em;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
 
-        .calendar {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 15px;
-            margin-top: 20px;
-        }
+.tabs button:hover,
+.tabs button.active {
+    background-color: var(--highlight-color); /* Lighter blue on hover */
+    transform: translateY(-3px);
+}
 
-        .calendar .day {
-            padding: 15px;
-            background-color: #1E3A8A;
-            border: 1px solid #ddd;
-            border-radius: 10px;
-            position: relative;
-            height: 120px;
-            cursor: pointer;
-            box-shadow: 0 4px 6px rgb(246, 245, 245);
-            transition: all 0.3s ease;
-        }
+.tab-content {
+    display: none;
+    padding: 20px;
+    background: var(--accent-color); /* White background for tab content */
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    max-width: 1000px;
+    margin: 0 auto;
+    animation: fadeIn 0.5s;
+}
 
-        .calendar .day:hover {
-            background-color: #f4f4f4;
-            transform: scale(1.05);
-        }
+.tab-content.active {
+    display: block;
+}
 
-        .calendar .day.with-events {
-            background: linear-gradient(135deg, #1E3A8A, #f5f5f5);
-        }
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
 
-        .calendar .day.current-day {
-            background: linear-gradient(135deg, #80deea, #4dd0e1);
-            border: 2px solid #0288d1;
-        }
+.navigation select {
+    padding: 10px;
+    border: 1px solid var(--border-color); /* Blue border */
+    border-radius: 5px;
+    cursor: pointer;
+    background-color: var(--accent-color); /* White background */
+    transition: all 0.3s ease;
+}
 
-        .event-popup {
-            position: absolute;
-            top: 5px;
-            left: 5px;
-            background-color: #fff;
-            padding: 10px;
-            font-size: 0.9em;
-            color: #333;
-            border-radius: 5px;
-            box-shadow: 0 2px 5px rgb(235, 233, 233);
-            display: none;
-            z-index: 10;
-        }
+.navigation select:hover {
+    background-color: var(--highlight-color); /* Lighter blue on hover */
+    color: white;
+}
 
-        .calendar .day:hover .event-popup {
-            display: block;
-        }
+.flatpickr {
+    padding: 10px;
+    border: 1px solid var(--border-color); /* Blue border */
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1em;
+}
 
-        .event-count {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 14px;
-            font-weight: bold;
-            color: #d84315;
-        }
+.flatpickr:hover {
+    background-color: var(--highlight-color); /* Lighter blue on hover */
+    color: white;
+}
 
-        /* Navigation */
-        .navigation {
-            text-align: center;
-            margin-bottom: 20px;
-        }
+/* Responsive Calendar (Square Layout on Small Screens) */
+@media (max-width: 768px) {
+    .calendar {
+        grid-template-columns: repeat(4, 1fr); /* 4 columns on smaller screens */
+        grid-auto-rows: minmax(100px, 1fr); /* Adjust height to keep the tiles square */
+    }
 
-        .navigation select {
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            cursor: pointer;
-            background-color: #f5f5f5;
-            transition: all 0.3s ease;
-        }
+    .calendar .day {
+        font-size: 1.2em; /* Slightly smaller font size on smaller screens */
+    }
+}
 
-        .navigation select:hover {
-            background-color: #1E3A8A;
-            color: white;
-        }
 
     </style>
 </head>
 <body>
     <header>
+        <a id="backButton" class="back-button">
+            <i class="fas fa-arrow-left"></i> <!-- Font Awesome left arrow icon -->
+        </a>
+        
+        <script>
+            // Set a JavaScript variable based on Django's authentication state
+            var isAuthenticated = {% if user.is_authenticated %} true {% else %} false {% endif %};
+        
+            document.getElementById('backButton').onclick = function() {
+                if (isAuthenticated) {
+                    window.location.href = "{% url 'profile' %}";
+                } else {
+                    window.location.href = "{% url 'home' %}";
+                }
+            };
+        </script>
         <h1>FESTFEED</h1>
     </header>
-    <nav>
-        <!-- <ul>
-            <li><a href="/">Home</a></li>
-            <li><a href="{% url 'calendar' %}">Calendar</a></li>
-            <li><a href="{% url 'login_view' %}">Login</a></li>
-        </ul> -->
-    </nav>
-    <div class="tabs">
+      <div class="tabs">
         <button class="active" onclick="showTab('general')">General</button>
         <button onclick="showTab('user-added')">User Added</button>
     </div>
 
-    <!-- Tab Content -->
+    <!-- # Tab Content  -->
     <div id="general" class="tab-content active">
-        <div class="calendar-container">
-            <h2>General Calendar</h2>
+       
+    <div class="calendar-container">
+        <h2>General calendar</h2>
+        <div class="navigation">
+            <!-- Set the default date in Flatpickr using the current month and year -->
+            <input id="monthPicker" class="flatpickr" placeholder="Select Month and Year" readonly
+            value="{{ current_month|date:'M' }} {{ current_year }}">
+            
+        </div>
 
-            <div class="navigation">
-                <form action="" method="get" style="display:inline-block;">
-                    <select name="month" onchange="this.form.submit()">
-                        <option value="1" {% if current_month == 1 %}selected{% endif %}>January</option>
-                        <option value="2" {% if current_month == 2 %}selected{% endif %}>February</option>
-                        <option value="3" {% if current_month == 3 %}selected{% endif %}>March</option>
-                        <option value="4" {% if current_month == 4 %}selected{% endif %}>April</option>
-                        <option value="5" {% if current_month == 5 %}selected{% endif %}>May</option>
-                        <option value="6" {% if current_month == 6 %}selected{% endif %}>June</option>
-                        <option value="7" {% if current_month == 7 %}selected{% endif %}>July</option>
-                        <option value="8" {% if current_month == 8 %}selected{% endif %}>August</option>
-                        <option value="9" {% if current_month == 9 %}selected{% endif %}>September</option>
-                        <option value="10" {% if current_month == 10 %}selected{% endif %}>October</option>
-                        <option value="11" {% if current_month == 11 %}selected{% endif %}>November</option>
-                        <option value="12" {% if current_month == 12 %}selected{% endif %}>December</option>
-                    </select>
-                </form>
-                <form action="" method="get" style="display:inline-block;">
-                    <select name="year" onchange="this.form.submit()">
-                        <option value="{{ current_year }}" selected>{{ current_year }}</option>
-                        <option value="{{ next_year }}">{{ next_year }}</option>
-                        <option value="{{ prev_year }}">{{ prev_year }}</option>
-                    </select>
-                </form>
-            </div>
-
-            <div class="calendar">
-                {% for day in days_in_month %}
-                    <div class="day {% if day.events.count > 0 %}with-events{% endif %} {% if day.date == current_date %}current-day{% endif %}">
-                        <div>{{ day.day }}</div>
-                        <div class="event-count">
-                            {% if day.events.count > 0 %}
-                                {{ day.events.count }} events
-                            {% endif %}
-                        </div>
-                        {% for event in day.events %}
-                            <div class="event-popup">
-                                <strong>{{ event.name }}</strong><br>
-                                <span>{{ event.place }}</span><br>
-                                <a href="{% url 'event_detail' event.id %}">Details</a>
-                            </div>
-                        {% endfor %}
+        <div class="calendar">
+            {% for day in days_in_month %}
+                <div class="day {% if day.events.count > 0 %}with-events{% endif %} {% if day.date == current_date %}current-day{% endif %}">
+                    <div>{{ day.day }}</div>
+                    <div class="event-count">
+                        {% if day.events.count > 0 %}
+                            {{ day.events.count }} events
+                        {% endif %}
                     </div>
-                {% endfor %}
-            </div>
+                    {% for event in day.events %}
+                        <div class="event-popup">
+                            <a href="{% url 'event_detail' event.id %}"><strong>{{ event.name }}</strong></a><br>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endfor %}
         </div>
     </div>
-
+    </div>
     <div id="user-added" class="tab-content">
         <div class="calendar-container">
             <h2>User-Added Calendar</h2>
+            
+        <div class="navigation">
+            <!-- Set the default date in Flatpickr using the current month and year -->
+            <input id="monthPicker" class="flatpickr" placeholder="Select Month and Year" readonly
+            value="{{ current_month|date:'M' }} {{ current_year }}">
+            
+        </div>
             <div class="calendar">
+                
                 {% for day in days_in_month %}
                     <div class="day {% if day.user_added_events.count > 0 %}with-events{% endif %} {% if day.date == current_date %}current-day{% endif %}">
                         <div>{{ day.day }}</div>
@@ -307,8 +302,38 @@
             </div>
         </div>
     </div>
-
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/monthSelect/index.js"></script>
     <script>
+        
+        flatpickr("#monthPicker", {
+            plugins: [
+                new monthSelectPlugin({
+                    shorthand: true,
+                    dateFormat: "M Y", // Month and year format
+                    altFormat: "M Y",
+                }),
+            ],
+            defaultDate: "{{ current_year }}-{{ current_month|date:'m' }}-01", // Ensure default date is correct
+            onChange: function(selectedDates, dateStr) {
+                console.log("Selected date:", dateStr); // Log the selected month and year
+                // This will update the input field with the selected date
+                document.getElementById('monthPicker').value = dateStr;
+
+
+                const selectedMonth = selectedDates[0].getMonth() + 1;  // getMonth is 0-based, so +1
+                const selectedYear = selectedDates[0].getFullYear();
+
+                // Get the current path and append the selected month and year as query parameters
+                const currentPath = window.location.pathname;
+                const newUrl = `${currentPath}?month=${selectedMonth}&year=${selectedYear}`;
+                    
+                // Redirect to the new URL with query parameters
+                window.location.href = newUrl;
+
+            }
+        });
+
         function showTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(tab => {
                 tab.classList.remove('active');

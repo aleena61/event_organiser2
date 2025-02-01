@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.models import User
-from .models import Event, Competition, Notification
+from .models import Event, Competition,EventUser,Notification
 
 
 @admin.register(Event)
@@ -49,23 +49,15 @@ class EventAdmin(admin.ModelAdmin):
 
 # Register the Competition model
 admin.site.register(Competition)
-@admin.register(Notification)
-class NotificationAdmin(admin.ModelAdmin):
-    list_display = ('message', 'created_at', 'read')
-    list_filter = ('read',)
-    actions = ['mark_as_read']
+admin.site.register(EventUser)
 
-    def mark_as_read(self, request, queryset):
-        queryset.update(read=True)
-    mark_as_read.short_description = "Mark selected notifications as read"
 
 from django.contrib.admin import AdminSite
-from .models import Notification
+
 
 class CustomAdminSite(AdminSite):
     def each_context(self, request):
         context = super().each_context(request)
-        context['notifications'] = Notification.objects.filter(read=False)
         return context
 
 admin_site = CustomAdminSite()

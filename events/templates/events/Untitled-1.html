@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: #2c3e50;
+            min-height: 100vh;
+            padding-top: 80px;
+        }
+
+        .dashboard-container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .chart-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            padding: 2rem;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            animation: fadeInUp 1s ease-out;
+        }
+
+        .chart-section:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+        }
+
+        .filters-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+
+        .filter {
+            background: white;
+            padding: 1rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+        }
+
+        .filter:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .form-label {
+            font-weight: 500;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .form-select, .form-control {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #e1e8ed;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+        }
+
+        .form-select:focus, .form-control:focus {
+            border-color: #3498db;
+            box-shadow: 0 0 0 2px rgba(52,152,219,0.2);
+            outline: none;
+        }
+
+        .ribbon {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            padding: 1.25rem 2rem;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            animation: slideInDown 0.5s ease-out;
+        }
+
+        .ribbon h1 {
+            color: white;
+            margin: 0;
+            font-size: 1.8rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+
+        .ribbon .icons {
+            display: flex;
+            gap: 1.5rem;
+            align-items: center;
+        }
+
+        .ribbon .icons i {
+            font-size: 1.5rem;
+            color: white;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            padding: 0.5rem;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .ribbon .icons i:hover {
+            transform: scale(1.1);
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        h2 {
+            color: #2c3e50;
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            text-align: center;
+            position: relative;
+            padding-bottom: 0.75rem;
+        }
+
+        h2::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 50px;
+            height: 3px;
+            background: linear-gradient(to right, #3498db, #2980b9);
+            border-radius: 3px;
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            min-height: 300px;
+        }
+
+        canvas {
+            max-width: 100%;
+            height: auto !important;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideInDown {
+            from {
+                transform: translateY(-100%);
+            }
+            to {
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-container {
+                padding: 0 1rem;
+            }
+
+            .filters-container {
+                grid-template-columns: 1fr;
+            }
+
+            .ribbon {
+                padding: 1rem;
+            }
+
+            .ribbon h1 {
+                font-size: 1.4rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="ribbon">
+        <h1>Admin Dashboard</h1>
+        <div class="icons">
+            
+            <a href="" id="importButton" class="btn btn-success">🔔</a>
+            
+            <a href="{%url 'manage_events'%}" id="importButton" class="btn btn-success">📝</a>
+        </div>
+    </div>
+
+    <!-- <div class="dashboard-container">
+        <div class="filters-container">
+            <div class="filter">
+                <label for="timeFilter" class="form-label">Time Range</label>
+                <select id="timeFilter" class="form-select" onchange="handleTimeFilterChange()">
+                    <option value="">All</option>
+                    <option value="thisYear">This Year</option>
+                    <option value="thisMonth">This Month</option>
+                    <option value="thisWeek">This Week</option>
+                    <option value="dateRange">Date Range</option>
+                </select>
+            </div>
+            <div class="filter" id="startDateContainer" style="display: none;">
+                <label for="startDate" class="form-label">Start Date</label>
+                <input type="date" id="startDate" class="form-control" onchange="checkDateRangeAndUpdateGraph()">
+            </div>
+            <div class="filter" id="endDateContainer" style="display: none;">
+                <label for="endDate" class="form-label">End Date</label>
+                <input type="date" id="endDate" class="form-control" onchange="checkDateRangeAndUpdateGraph()">
+            </div>
+            <div class="filter">
+                <label for="category" class="form-label">Category</label>
+                <select id="category" class="form-select" onchange="updateGraph()">
+                    <option value="">All</option>
+                    {% for label in category_labels %}
+                    <option value="{{ label }}">{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="filter">
+                <label for="visits" class="form-label">Visits</label>
+                <select id="visits" class="form-select" onchange="updateGraph()">
+                    <option value="">All</option>
+                    <option value="100">Less than 100</option>
+                    <option value="50">Less than 50</option>
+                    <option value="10">Less than 10</option>
+                </select>
+            </div>
+        </div> -->
+
+        <div class="dashboard-grid">
+            <div class="chart-section">
+                <h2>Event Statistics</h2>
+                <div class="filters-container">
+                    <div class="filter">
+                        <label for="timeFilter" class="form-label">Time Range</label>
+                        <select id="timeFilter" class="form-select" onchange="handleTimeFilterChange()">
+                            <option value="">All</option>
+                            <option value="thisYear">This Year</option>
+                            <option value="thisMonth">This Month</option>
+                            <option value="thisWeek">This Week</option>
+                            <option value="dateRange">Date Range</option>
+                        </select>
+                    </div>
+
+                    <div class="filter" id="startDateContainer" style="display: none;">
+                        <label for="startDate" class="form-label">Start Date</label>
+                        <input type="date" id="startDate" class="form-control" onchange="checkDateRangeAndUpdateGraph()">
+                    </div>
+                    <div class="filter" id="endDateContainer" style="display: none;">
+                        <label for="endDate" class="form-label">End Date</label>
+                        <input type="date" id="endDate" class="form-control" onchange="checkDateRangeAndUpdateGraph()">
+                    </div>
+                    <div class="filter">
+                        <label for="category" class="form-label">Category</label>
+                        <select id="category" class="form-select" onchange="updateGraph()">
+                            <option value="">All</option>
+                            {% for label in category_labels %}
+                            <option value="{{ label }}">{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="filter">
+                        <label for="visits" class="form-label">Visits</label>
+                        <select id="visits" class="form-select" onchange="updateGraph()">
+                            <option value="">All</option>
+                            <option value="100">Less than 100</option>
+                            <option value="50">Less than 50</option>
+                            <option value="10">Less than 10</option>
+                        </select>
+                    </div>
+                
+                <div class="chart-container">
+                    <canvas id="eventChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-section">
+                <h2>Total Event Visits</h2>
+                <div class="chart-container">
+                    <canvas id="eventViewsChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-section">
+                <h2>Event Categories</h2>
+                <div class="chart-container">
+                    <canvas id="categoriesChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% block script %}
+    <script>
+        function handleTimeFilterChange() {
+            const timeFilter = document.getElementById('timeFilter').value;
+            const startDateContainer = document.getElementById('startDateContainer');
+            const endDateContainer = document.getElementById('endDateContainer');
+            
+            if (timeFilter === 'dateRange') {
+                startDateContainer.style.display = 'block';
+                endDateContainer.style.display = 'block';
+            } else {
+                startDateContainer.style.display = 'none';
+                endDateContainer.style.display = 'none';
+                // Reset date inputs when not using date range
+                document.getElementById('startDate').value = '';
+                document.getElementById('endDate').value = '';
+                updateGraph(); // Update graph immediately for other filters
+            }
+        }
+        
+        function checkDateRangeAndUpdateGraph() {
+            const timeFilter = document.getElementById('timeFilter').value;
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+        
+            if (timeFilter === 'dateRange') {
+                if (startDate && endDate) {
+                    updateGraph(); // Only update graph if both dates are selected
+                }
+            }
+        }
+
+        // Graph for Total Visits
+        // Graph for Event Views (Pie Chart for each Event)
+        // Graph for Event Views (Pie Chart for each Event)
+        const eventViewsChart = document.getElementById('eventViewsChart').getContext('2d');
+        new Chart(eventViewsChart, {
+            type: 'pie',
+            data: {
+                labels: [{% for item in events %}'{{ item.name|escapejs }}'{% if not forloop.last %},{% endif %}{% endfor %}], // Event Names
+                datasets: [{
+                    label: 'Event Views',
+                    data: [{% for item in events %}{{ item.visits }}{% if not forloop.last %}, {% endif %}{% endfor %}], // Event Views
+                    backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40', '#C2C2C2'],  // Custom colors
+                    borderColor: '#FFFFFF',
+                    borderWidth: 1,
+                }],
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(tooltipItem) {
+                                return tooltipItem.raw + ' views';  // Display number of views on hover
+                            },
+                        },
+                    },
+                },
+                aspectRatio: 1.5,
+            },
+        });
+        // Graph for Categories Count
+        const categoriesChart = document.getElementById('categoriesChart').getContext('2d');
+        new Chart(categoriesChart, {
+            type: 'bar',
+            data: {
+                labels: [{% for item in categories_count %}'{{ item.category }}'{% if not forloop.last %}, {% endif %}{% endfor %}],
+                datasets: [{
+                    label: 'Events per Category',
+                    data: [{% for item in categories_count %}{{ item.count }}{% if not forloop.last %}, {% endif %}{% endfor %}],
+                    backgroundColor: '#4BC0C0',
+                    borderColor: '#FFFFFF',
+                    borderWidth: 1,
+                }],
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                    },
+                },
+                // Adjust size via aspectRatio
+                aspectRatio: 1.5, // Keep charts proportional but more compact
+            },
+        });
+        const eventsData = JSON.parse('{{ events_data|safe }}');
+        console.log("Issues Data Loaded:", eventsData);
+        let eventChart; 
+        function createGraph(filteredData) {
+            // Destroy the existing chart if it exists
+            if (eventChart) {
+                eventChart.destroy(); 
+            }
+            
+            if (!filteredData || filteredData.length === 0) {
+                console.error('Filtered data is empty');
+                return;
+            }
+        
+            // Extract dates and counts from filtered data
+           // const dates = filteredData.map(item => item.date);  // Assuming 'item.date' is the date field
+            //const counts = filteredData.map(item => item.eventCount);  // Assuming 'item.eventCount' is the event count
+            
+            const groupedData = filteredData.reduce((acc, item) => {
+                const date = new Date(item.date); // Ensure correct event date
+                // Format the date to YYYY-MM-DD (or your preferred format)
+                const formattedDate = date.toISOString().split('T')[0];
+        
+                // If the date already exists, increment the event count
+                if (acc[formattedDate]) {
+                    acc[formattedDate] += 1;
+                } else {
+                    acc[formattedDate] = 1;
+                }
+        
+                return acc;
+            }, {});
+        
+            // Extract the keys (dates) and values (number of events)
+            const dates = Object.keys(groupedData);
+            const eventCounts = Object.values(groupedData);
+            
+
+     
+           
+        
+            // Get context for the chart
+            const ctx = document.getElementById('eventChart').getContext('2d');
+            
+            eventChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: dates, // Use dates as x-axis labels
+                    datasets: [{
+                        label: 'Number of Events',
+                        data: eventCounts, // Event counts on y-axis
+                        borderColor: 'rgba(75, 192, 192, 1)', // Line color
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)', // Background color for the line
+                        borderWidth: 2,
+                        tension: 0.3, // Line smoothing
+                    }]
+                },
+                options: {
+                    responsive: true, // Make the chart responsive
+                    scales: {
+                        x: {
+                            type: 'category',  // Treat x-axis as categorical (dates)
+                            ticks: {
+                                autoSkip: dates.length > 8, // Skip some date labels if there are too many
+                                maxTicksLimit: 9,  // Limit the maximum number of ticks on the x-axis
+                                callback: function(value, index) {
+                                    // Display all labels for smaller datasets, and skip some for larger ones
+                                    if (dates.length <= 10) return this.getLabelForValue(value);
+                                    return index % Math.ceil(dates.length / 10) === 0 
+                                        ? this.getLabelForValue(value) 
+                                        : null;
+                                }
+                            },
+                            title: {
+                                display: true,
+                                text: 'Date', // x-axis title
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Number of Events', // y-axis title
+                            },
+                            beginAtZero: true, // Start the y-axis from 0
+                            ticks: {
+                                callback: function(value) {
+                                    // Only display integer values on the y-axis
+                                    return Number.isInteger(value) ? value : null;
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(tooltipItem) {
+                                    // Custom tooltip label to show event count
+                                    return Events: ${tooltipItem.raw};
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateGraph() {
+            const timeFilter = document.getElementById('timeFilter').value;
+            const today = new Date();
+            let fromDate, toDate;
+        
+            if (timeFilter === 'thisYear') {
+                fromDate = new Date(today.getFullYear(), 0, 1);
+                toDate = new Date(today.getFullYear(), 11, 31);
+            } else if (timeFilter === 'thisMonth') {
+                fromDate = new Date(today.getFullYear(), today.getMonth(), 1);
+                toDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+            } else if (timeFilter === 'thisWeek') {
+                const day = today.getDay();
+                fromDate = new Date(today);
+                fromDate.setDate(today.getDate() - day); // Start of the week
+                toDate = new Date(today);
+                toDate.setDate(today.getDate() + (6 - day)); // End of the week
+            } else if (timeFilter === 'dateRange') {
+                fromDate = new Date(document.getElementById('startDate').value);
+                toDate = new Date(document.getElementById('endDate').value);
+            }
+        
+           
+            const category = document.getElementById('category').value;
+            const visits = document.getElementById('visits').value;
+
+            const filteredData = eventsData.filter(item => {
+                const itemDate = new Date(item.date);
+                return (
+                    (!fromDate || itemDate >= fromDate) &&
+                    (!toDate || itemDate <= toDate) &&
+                    (!category || item.category === category) &&
+                    (!visits || item.visits < visits) // Filter for views
+                );
+            });
+            
+        
+            console.log("Filtered Data:", filteredData);
+        
+            if (filteredData.length === 0) {
+                alert('No data matches the selected filters');
+                return;
+            }
+        
+            createGraph(filteredData);
+        }
+
+       
+        createGraph(eventsData);
+    </script>
+    {% endblock script %}
+</body>
+</html>0

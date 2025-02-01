@@ -6,6 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Event Organizer</title>
     <link href="https://fonts.googleapis.com/css2?family=Kaushan+Script&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Kaushan+Script&display=swap" rel="stylesheet">
+
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <style>
         /* Existing styles (retain everything from your original code) */
@@ -22,11 +26,11 @@
         body {
             font-family: Arial, sans-serif;
             line-height: 1.6;
-            background: linear-gradient(to bottom right, #1E3A8A, #A7C7E7);
+            background: white;
             color: #333;
         }
-
-        /* Loader Animation */
+/* 
+        Loader Animation
         #loader {
             position: fixed;
             top: 0;
@@ -66,22 +70,7 @@
             }
         }
 
-        /* Header Section */
-        header {
-            background-color: rgba(255, 255, 255, 0.9);
-            color: #1E3A8A;
-            padding: 20px;
-            text-align: center;
-            position: relative;
-            animation: fadeInDown 2s ease-out;
-        }
 
-        header h1 {
-            margin: 0;
-            font-size: 3em;
-            font-family: 'Kaushan Script', cursive;
-            animation: pulse 1.5s infinite;
-        }
         @keyframes fadeInDown {
             from {
                 transform: translateY(-50px);
@@ -100,22 +89,20 @@
             50% {
                 transform: scale(1.05);
             }
-        }
-
-        /* Navigation */
+        } */
         nav {
-            background-color: #1E3A8A;
-            position: sticky;
-            top: 0;
-            padding: 10px 0;
-            z-index: 999;
-            animation: slideIn 2s ease-out;
+            background-color: #33658A;  /* Dark Blue */
+            padding: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
         nav ul {
             list-style: none;
             display: flex;
             justify-content: center;
+            padding: 0;
         }
 
         nav ul li {
@@ -126,16 +113,59 @@
             color: white;
             text-decoration: none;
             font-size: 1.2em;
-            padding: 10px 20px;
+            padding: 8px 15px;
             border-radius: 4px;
-            transition: background-color 0.3s, transform 0.3s;
+            transition: background-color 0.3s;
         }
 
         nav ul li a:hover {
-            background-color: #A7C7E7;
-            transform: scale(1.1);
+            background-color: #F6AE2D;  /* Bright Yellow */
         }
 
+        /* Profile and Notification Icons */
+        .icons-container {
+            display: flex;
+            align-items: center;
+            position: fixed;
+            right: 0px; /* Position icons on the right */
+            top: 8%;
+            gap:25px;
+            transform: translateY(-50%); /* Center icons vertically */
+            z-index: 1000; /* Ensure it's on top of other content */
+            padding: 10px;
+            background-color: transparent;
+        }
+
+        .profile-icon,
+        .notification-icon {
+            background-color: black;
+            border: none;
+            color: white;
+            font-size: 1.5em;
+            padding: 10px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            
+        }
+
+        .profile-icon:hover,
+        .notification-icon:hover {
+            background-color: #827f8b;  /* Bright Yellow */
+        }
+        /* .notification-icon::after {
+            content: "2"; /* Example notification count 
+            position: absolute;
+            top: -17px;
+            right:-20px;
+            background-color: red;
+            color: white;
+            border-radius: 50%;
+            padding: 3px 7px;
+            font-size: 0.9em;
+        } */
+
+        /* Dropdown Menu for Profile */
         @keyframes slideIn {
             from {
                 transform: translateY(-50px);
@@ -147,7 +177,7 @@
             }
         }
 
-        /* Search Section */
+        /* Search Section
         .search-container {
             text-align: center;
             margin: 20px 0;
@@ -165,18 +195,71 @@
         #search-bar:focus, #filter-option:focus,#category-filter:focus {
             border-color: #1E3A8A;
             outline: none;
+        } */
+        #search-section {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: white;
+  z-index: 1000;
+  overflow-y: auto;
+}
+
+#search-section button {
+  cursor: pointer;
+}
+ /* Search Section */
+ .search-container {
+            text-align: center;
+            margin: 20px 0;
+            animation: fadeIn 2s ease-in-out;
         }
+
+        #search-bar{
+            padding: 10px;
+            width:80%;
+            font-size: 1em;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            transition: border-color 0.3s;
+
+        }
+
+         #filter-option ,#category-filter {
+            padding: 10px;
+            font-size: 1em;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            transition: border-color 0.3s;
+        }
+
+        #search-bar:focus, #filter-option:focus,#category-filter:focus {
+            border-color: #1E3A8A;
+            outline: none;
+        }
+
+
+.events-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: center;
+  padding: 20px;
+}
 
 
         button {
             padding: 10px 15px;
             font-size: 1em;
-        background-color: #1E3A8A;
-        color: white;
-        border: none;
-        cursor: pointer;
-        border-radius: 4px;
-        transition: background-color 0.3s, transform 0.3s;
+            background-color: #1E3A8A;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background-color 0.3s, transform 0.3s;
         }
 
         button:hover {
@@ -238,6 +321,7 @@ h2 {
 .event-card:hover {
     transform: scale(1.05);
 }
+
 
         .view-details {
             display: inline-block;
@@ -384,32 +468,7 @@ h2 {
             border-radius: 8px;
         }
 
-        /* Comparison Section */
-        .comparison-section {
-            margin: 20px 0;
-            text-align: center;
-            padding: 20px;
-            background: #fff;
-            border-radius: 8px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-        }
-
-        .comparison-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 20px auto;
-            max-width: 800px;
-        }
-
-        .comparison-table th, .comparison-table td {
-            padding: 10px;
-            border: 1px solid #ddd;
-        }
-
-        .comparison-table th {
-            background: #1E3A8A;
-            color: white;
-        }
+        
         a {
             color: #1E3A8A; /* Navy blue links */
             text-decoration: none;
@@ -418,26 +477,107 @@ h2 {
         a:hover {
             color: #A7C7E7; /* Light blue hover */
         }
+        .profile-container {
+            position: relative;
+        }
+        .profile-icon-container {
+            position: relative;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            overflow: hidden;
+            background-color: #86BBD8; /* Default background */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+        }
 
+        .profile-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
 
+        .profile-placeholder {
+            width: 100%;
+            height: 100%;
+            font-size: 1.5em;
+            font-weight: bold;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #33658A; /* Default color for placeholder */
+        }
+       
         #map {
             height: 400px;
             width: 100%;
-            margin: 20px;
-            padding: 20px;
+            margin: 30px;
+            padding: 30px;
         }
+        header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: rgba(255, 255, 255, 0.9);
+    color: #1E3A8A;
+    padding: 10px 20px;
+    animation: fadeInDown 2s ease-out;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+header h1 {
+    margin: 0;
+    font-size: 2em;
+    font-family: 'Kaushan Script', cursive;
+}
+
+.header-icons {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.header-icons button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.5em;
+    color: #1E3A8A;
+    transition: color 0.3s, transform 0.3s;
+}
+
+.header-icons button:hover {
+    color: #A7C7E7;
+    transform: scale(1.1);
+}
+
+/* Adjustments for Smaller Screens */
+@media (max-width: 768px) {
+    header {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .header-icons {
+        margin-top: 10px;
+    }
+}
         
     </style>
 </head>
 <body>
 <!-- Loader -->
-<div id="loader">
+<!-- <div id="loader">
     <div></div>
     <div></div>
     <div></div>
 </div>
 
-<!-- Header -->
+ Header 
 <header>
     <h1>FESTFEED</h1>
 </header>
@@ -452,7 +592,7 @@ h2 {
 </nav> -->
 
 <!-- Search -->
-<div class="search-container">
+<!-- <div class="search-container">
     <input type="text" id="search-bar" placeholder="Search events..." onkeyup="searchEvents()">
     <select id="filter-option" onchange="searchEvents()">
         <option value="all">All</option>
@@ -471,16 +611,16 @@ h2 {
         <option value="Food">Food</option>
     </select>
     <button onclick="searchEvents()">Search</button>
-</div>
+</div> -->
 <!-- Search Results Section -->
-<section id="search-results" style="display:none;"> <!-- Hidden initially -->
-    <h2>Search Results</h2>
-    <div class="events-grid">
+<!-- <section id="search-results" style="display:none;"> <!-- Hidden initially -->
+    <!-- <h2>Search Results</h2>
+    <div class="events-grid"> -->
         <!-- Results will be displayed here -->
-    </div>
-</section>
+    <!-- </div>
+</section> -->
 <!-- Display search results -->
-<section id="search-results" style="display:none;">
+<!-- <section id="search-results" style="display:none;">
     <h2>Search Results</h2>
     <div class="events-grid" id="events-grid">
         {% for event in events %}
@@ -516,7 +656,74 @@ h2 {
             To Unlock all features Login/Signup
         </button><br>
     </div>
-</div>
+</div> --> 
+<header>
+    <h1>FESTFEED</h1>
+    <div class="header-icons">
+        
+        <button onclick="toggleSearch()">
+            <i class="fa fa-search"></i>
+          </button>
+          
+          <div id="search-section" style="display: none; position: fixed; top: 50px; left: 50px; width: 100%; height: 100%; background: white; z-index: 1000;">
+            <button onclick="toggleSearch()" style="position: absolute; top: 10px; right: 10px; background: transparent; border: none; font-size: 20px;">✖</button>
+            <div id="search-container">
+                <input type="text" id="search-bar" placeholder="Search events..."  style="width: 80%; padding: 10px; font-size: 16px;">
+                <button onclick="searchEvents()" style="padding: 10px; font-size: 16px;">Search</button>
+                <br>
+                <select id="filter-option" onchange="searchEvents()">
+                    <option value="all">All</option>
+                    <option value="name">Name</option>
+                    <option value="place">Place</option>
+                    <option value="date">Date</option>
+                    <option value="category">Category</option>
+                </select>
+                <select id="category-filter" onchange="searchEvents()">
+                    <option value="">Select Category</option>
+                    <option value="cultural">Cultural</option>
+                    <option value="Music">Music</option>
+                    <option value="Sports">Sports</option>
+                    <option value="Art">Art</option>
+                    <option value="Tech">Tech</option>
+                    <option value="Food">Food</option>
+                </select>
+                
+            </div>
+            <!--  Search Results Section -->
+             <section id="search-results" style="display:none;"> <!-- Hidden initially -->
+                <h2>Search Results</h2>
+                <div class="events-grid"> 
+                    <!-- Results will be displayed here -->
+                 </div>
+            </section> 
+            <!-- Display search results -->
+             <section id="search-results" style="display:none;">
+                <h2>Search Results</h2>
+                <div class="events-grid" id="events-grid">
+                    {% for event in events %}
+                    <div class="event-card" data-category="{{ event.category }}">
+                        <img src="{{ event.first_photo_url }}" alt="{{ event.name }} Image">
+                        <h2>{{ event.name }}</h2>
+                        <p>Place: {{ event.place }}</p>
+                        <p>Date: {{ event.date }}</p>
+                        <a href="{% url 'event_detail' event.id %}" class="view-details">View Details</a>
+                        <button onclick="setReminder('{{ event.id }}')">Set Reminder</button>
+                        <button onclick="bookmarkEvent('{{ event.id }}', this)">
+                            {% if user in event.bookmarked_by.all %}
+                                Unbookmark
+                            {% else %}
+                                Bookmark
+                            {% endif %}
+                        </button>
+                    </div>
+                    {% endfor %}
+                </div>
+            </section></div>
+            <button onclick="window.location.href='/calendar/'"> <i class="fa fa-calendar"></i>  </button>
+       
+        <button onclick="window.location.href='/login_view/'"><i class="fa fa-user"></i></button>
+    </div>
+</header>
 
 <div class="events-container">
     <!-- Trending Events Section -->
@@ -525,13 +732,14 @@ h2 {
         <div class="events-grid">
             {% for event in trending_events %}
             <div class="event-card">
+                <a href="{% url 'event_detail' event.id %}">
                 <img src="{{ event.first_photo_url }}" alt="Event Image">
                 <h3>{{ event.name }}</h3>
                 <p>Location: {{ event.place }}</p>
                 <p>Date: {{ event.date }}</p>
-                <a href="{% url 'event_detail' event.id %}" class="view-details">View Details</a>
+                </a>
                 <button onclick="window.location.href='/login_view/'">Set Reminder</button>
-                <button onclick="window.location.href='/login_view/'">
+                <button onclick="window.location.href='/login_view/'">Bookmark</button>
             </div>
             {% endfor %}
         </div>
@@ -543,13 +751,14 @@ h2 {
         <div class="events-grid">
             {% for event in recently_added_events %}
             <div class="event-card">
+                <a href="{% url 'event_detail' event.id %}">
                 <img src="{{ event.first_photo_url }}" alt="Event Image">
                 <h3>{{ event.name }}</h3>
                 <p>Location: {{ event.place }}</p>
                 <p>Date: {{ event.date }}</p>
-                <a href="{% url 'event_detail' event.id %}" class="view-details">View Details</a>
+               </a>
                 <button onclick="window.location.href='/login_view/'">Set Reminder</button>
-                <button onclick="window.location.href='/login_view/'">
+                <button onclick="window.location.href='/login_view/'">Bookmark</button>
             </div>
             {% endfor %}
         </div>
@@ -561,19 +770,14 @@ h2 {
     <div class="events-grid">
         {% for event in upcoming_events %}
         <div class="event-card">
-            <img src="{{ event.first_photo_url }}" alt="{{ event.name }} Image">
-            <h2>{{ event.name }}</h2>
-            <p>Place: {{ event.place }}</p>
+            <a href="{% url 'event_detail' event.id %}">
+            <img src="{{ event.first_photo_url }}" alt="Event Image">
+            <h3>{{ event.name }}</h3>
+            <p>Location: {{ event.place }}</p>
             <p>Date: {{ event.date }}</p>
-            <a href="{% url 'event_detail' event.id %}" class="view-details">View Details</a>
-            <button onclick="setReminder('{{ event.id }}')">Set Reminder</button>
-            <button onclick="bookmarkEvent('{{ event.id }}', this)">
-                {% if user in event.bookmarked_by.all %}
-                    Unbookmark
-                {% else %}
-                    Bookmark
-                {% endif %}
-            </button>
+           </a>
+            <button onclick="window.location.href='/login_view/'">Set Reminder</button>
+            <button onclick="window.location.href='/login_view/'">Bookmark</button>
         </div>
         {% endfor %}
     </div>
@@ -584,19 +788,14 @@ h2 {
     <div class="events-grid">
         {% for event in ongoing_events %}
         <div class="event-card">
-            <img src="{{ event.first_photo_url }}" alt="{{ event.name }} Image">
-            <h2>{{ event.name }}</h2>
-            <p>Place: {{ event.place }}</p>
+            <a href="{% url 'event_detail' event.id %}">
+            <img src="{{ event.first_photo_url }}" alt="Event Image">
+            <h3>{{ event.name }}</h3>
+            <p>Location: {{ event.place }}</p>
             <p>Date: {{ event.date }}</p>
-            <a href="{% url 'event_detail' event.id %}" class="view-details">View Details</a>
-            <button onclick="setReminder('{{ event.id }}')">Set Reminder</button>
-            <button onclick="bookmarkEvent('{{ event.id }}', this)">
-                {% if user in event.bookmarked_by.all %}
-                    Unbookmark
-                {% else %}
-                    Bookmark
-                {% endif %}
-            </button>
+           </a>
+            <button onclick="window.location.href='/login_view/'">Set Reminder</button>
+            <button onclick="window.location.href='/login_view/'">Bookmark</button>
         </div>
         {% endfor %}
     </div>
@@ -671,7 +870,10 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         }
     }
     };
-
+    function toggleSearch() {
+  const searchSection = document.getElementById('search-section');
+  searchSection.style.display = searchSection.style.display === 'none' ? 'block' : 'none';
+}
     
 </script>
 <script>

@@ -12,7 +12,7 @@ from django.urls import path, include
 urlpatterns = [
     path('admin/', admin.site.urls),
    
-   path('dashboard/', views.dashboard_view, name='dashboard_view_admin'),
+    path('dashboard/', views.dashboard_view, name='dashboard_view_admin'),
     path('calendar/', views.calendar_view, name='calendar'),
     path('event/<int:event_id>/', views.event_detail, name='event_detail'),
     path('add_event/', views.add_event, name='add-event'),
@@ -29,11 +29,9 @@ urlpatterns = [
     path('event/edit/<int:event_id>/', views.edit_event, name='edit_event'),
     path('event/delete/<int:event_id>/', views.delete_event, name='delete_event'),
     path('check-login-status/', views.check_login_status, name='check_login_status'),
-   
-    path('update_location/', views.update_location, name='update_location'),
-    
-    path('notifications/', views.notifications_list, name='notifications_list'),
+    path('notifications/', views.notifications, name='notifications'),
     path('notifications/read/<int:notification_id>/', views.mark_notification_as_read, name='mark_notification_as_read'),
+    path('update_location/', views.update_location, name='update_location'),
      path('approve_events/', views.approve_events, name='approve_events'),
     path('reject_events/', views.reject_events, name='reject_events'),
     path('approve_changes/', views.approve_changes, name='approve_changes'),
@@ -42,6 +40,7 @@ urlpatterns = [
     path('reject_deletion/', views.reject_deletion, name='reject_deletion'),
     path('manage_events/', views.manage_events, name='manage_events'),
     path('event/<int:event_id>/', views.event_detail, name='event_detail'),
+   
 ]
 
 if settings.DEBUG:

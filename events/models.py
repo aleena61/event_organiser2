@@ -106,14 +106,6 @@ class Competition(models.Model):
     def __str__(self):
         return self.name
 
-# class EventUser(models.Model):
-#     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='eventuser')
-#     event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='eventuser')
-#     visited = models.BooleanField(default=False)
-#     bookmarked = models.BooleanField(default=False)
-
-
-
 MAX_EVENT_USER_RECORDS = 10  # Maximum number of EventUser records per user
 
 class EventUser(models.Model):
@@ -144,16 +136,15 @@ def enforce_fifo(sender, instance, **kwargs):
         records_to_delete = user_event_records[MAX_EVENT_USER_RECORDS:]
         for record in records_to_delete:
             record.delete()
-
-
 class Notification(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, default=1,related_name="notifications")
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="notifications")
     message = models.TextField()
+    is_read = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
-    read = models.BooleanField(default=False)
 
-    def _str_(self):
-        return f"Notification for {self.user.username}"
+    def __str__(self):
+        return f"Notification for {self.user.username}: {self.message[:50]}"
+
     
 
     
