@@ -1,4 +1,3 @@
-
 from django.contrib import admin
 from django.urls import path
 from django.conf import settings
@@ -12,7 +11,7 @@ from django.urls import path, include
 urlpatterns = [
     path('admin/', admin.site.urls),
    
-    path('dashboard/', views.dashboard_view, name='dashboard_view_admin'),
+    path('dashboard/', views.admin_dashboard, name='dashboard_view_admin'),
     path('calendar/', views.calendar_view, name='calendar'),
     path('event/<int:event_id>/', views.event_detail, name='event_detail'),
     path('add_event/', views.add_event, name='add-event'),
@@ -32,15 +31,13 @@ urlpatterns = [
     path('notifications/', views.notifications, name='notifications'),
     path('notifications/read/<int:notification_id>/', views.mark_notification_as_read, name='mark_notification_as_read'),
     path('update_location/', views.update_location, name='update_location'),
-     path('approve_events/', views.approve_events, name='approve_events'),
-    path('reject_events/', views.reject_events, name='reject_events'),
-    path('approve_changes/', views.approve_changes, name='approve_changes'),
-    path('reject_changes/', views.reject_changes, name='reject_changes'),
-    path('approve_deletion/', views.approve_deletion, name='approve_deletion'),
-    path('reject_deletion/', views.reject_deletion, name='reject_deletion'),
     path('manage_events/', views.manage_events, name='manage_events'),
     path('event/<int:event_id>/', views.event_detail, name='event_detail'),
-   
+    path('search/', views.search_events, name='search_events'),
+     # Password reset URLs
+    path('forgot-password/', views.forgot_password, name='forgot_password'),
+    path('verify-otp/<str:email>/', views.verify_otp, name='verify_otp'),
+    path('reset-password/<str:email>/', views.reset_password, name='reset_password'),
 ]
 
 if settings.DEBUG:

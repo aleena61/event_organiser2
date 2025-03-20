@@ -64,6 +64,39 @@
             resize: vertical;
             margin-top: 15px;
         }
+            /* Label styling */
+        label[for="word_limit"] {
+            font-size: 1em;
+            font-weight: bold;
+            color: #333;
+            margin-right: 10px;
+        }
+
+        /* Input field styling */
+        input[type="number"] {
+            padding: 8px 12px;
+            border: 2px solid #ccc;
+            border-radius: 6px;
+            font-size: 1em;
+            width: 80px;
+            text-align: center;
+            transition: border-color 0.3s ease;
+        }
+
+        /* Focus effect for the input */
+        input[type="number"]:focus {
+            border-color: #F6AE2D;  /* Match the button color */
+            outline: none;
+        }
+
+        /* Optional: Label and input alignment */
+        .inline-form {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 10px 0;
+        }
+
     </style>
 </head>
 <body>
@@ -81,9 +114,17 @@
 
     <div>
         <h3>Edit Generated Newsletter Content:</h3>
+        <form method="GET" class="inline-form">
+            <label for="word_limit">Word Limit:</label>
+            <input type="number" name="word_limit" value="250" min="50" max="500">
+            <button type="submit">Generate</button>
+        </form>
+        
         <form method="POST">
             {% csrf_token %}
-            <textarea name="edited_newsletter">{% autoescape off %}{{ newsletter_content|safe }}{% endautoescape %}</textarea>
+            <textarea name="edited_newsletter">{% if newsletter_content %}{{ newsletter_content|safe }}{% endif %}</textarea>
+
+
             <div class="footer">
                 <p>Thank you for reviewing the newsletter content!</p>
                 <button type="submit" name="action" value="approve">Approve</button>

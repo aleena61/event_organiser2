@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Review Event Edit</h3>
+                </div>
+                <div class="card-body">
+                    <h4>{{ event.name }}</h4>
+                    <p class="text-muted">Edited by: {{ event.user.username }}</p>
+                    
+                    <div class="event-details mt-4">
+                        <h5>Event Details</h5>
+                        <p><strong>Description:</strong> {{ event.description }}</p>
+                        <p><strong>Location:</strong> {{ event.location }}</p>
+                        <p><strong>Start Date:</strong> {{ event.start_date }}</p>
+                        <p><strong>End Date:</strong> {{ event.end_date }}</p>
+                        <p><strong>Start Time:</strong> {{ event.start_time }}</p>
+                        <p><strong>End Time:</strong> {{ event.end_time }}</p>
+                        <p><strong>Entry Fee:</strong> {{ event.entry_fee }}</p>
+                        <p><strong>Website:</strong> <a href="{{ event.website }}" target="_blank">{{ event.website }}</a></p>
+                    </div>
+
+                    {% if event.competitions.all %}
+                    <div class="competitions mt-4">
+                        <h5>Competitions</h5>
+                        <ul class="list-group">
+                            {% for competition in event.competitions.all %}
+                            <li class="list-group-item">
+                                <h6>{{ competition.name }}</h6>
+                                <p>{{ competition.description }}</p>
+                                <p><strong>Prize:</strong> {{ competition.prize }}</p>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+
+                    {% if event.photos.all %}
+                    <div class="photos mt-4">
+                        <h5>Event Photos</h5>
+                        <div class="row">
+                            {% for photo in event.photos.all %}
+                            <div class="col-md-4 mb-3">
+                                <img src="{{ photo.image.url }}" alt="Event Photo" class="img-fluid rounded">
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <div class="mt-4">
+                        <form method="post">
+                            {% csrf_token %}
+                            <button type="submit" name="action" value="approve" class="btn btn-success">
+                                Approve Changes
+                            </button>
+                            <button type="submit" name="action" value="reject" class="btn btn-danger">
+                                Reject Changes
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

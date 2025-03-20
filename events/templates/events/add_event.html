@@ -3,37 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add Event</title>
-
-    <!-- Leaflet.js CSS (for map styling) -->
+    <title>Add Event - FestFeed</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-    
-    
-    <!-- Inline CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <style>
         body {
             font-family: Arial, sans-serif;
             background: #f4f4f9;
+            margin: 0;
+            padding: 0;
         }
 
         header {
-            background: #86BBD8;
-            color: white;
-            padding: 1rem;
-            text-align: center;
-        }
+            text-align: right;
+    display: flex;
+    justify-content: space-between;
+    align-items: right;
+    background-color: rgba(255, 255, 255, 0.9);
+    color: #1E3A8A;
+    padding: 10px 20px;
+    animation: fadeInDown 2s ease-out;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
 
-        nav {
+header h1 {
+    align-items: right;
+    text-align: right;
+    margin: 0;
+    font-size: 2em;
+    font-family: 'Kaushan Script', cursive;
+}
+
+
+        .back-arrow {
+            position: fixed;
+            top: 24px;
+            left: 24px;
+            background: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
             display: flex;
-            justify-content: space-around;
-            background: #33658A;
-            color: white;
-            padding: 0.5rem;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            cursor: pointer;
+            z-index: 100;
+            transition: all 0.3s ease;
+            text-decoration: none;
         }
 
-        nav a {
-            color: white;
-            text-decoration: none;
+        .back-arrow:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .back-arrow i {
+            color: #1e3a84;
+            font-size: 20px;
         }
 
         .form-container {
@@ -42,112 +69,179 @@
             background: white;
             padding: 2rem;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            border-radius: 12px;
         }
 
-        
-
         .form-group {
-            margin-bottom: 20px;
-            font-family: Arial, sans-serif;
+            margin-bottom: 24px;
         }
 
         .form-group label {
             display: block;
             font-weight: bold;
             margin-bottom: 8px;
+            color: #1e3a84;
             font-size: 14px;
-            color: #333;
         }
 
+        .form-group input, 
+        .form-group textarea, 
         .form-group select {
             width: 100%;
-            padding: 10px;
+            padding: 12px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
             font-size: 14px;
-            color: #333;
-            background-color: #f9f9f9;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            outline: none;
-            transition: border-color 0.3s ease, box-shadow 0.3s ease;
-            cursor: pointer;
+            transition: all 0.3s ease;
         }
 
+        .form-group input:focus, 
+        .form-group textarea:focus, 
         .form-group select:focus {
-            border-color: #007bff;
-            box-shadow: 0 0 4px rgba(0, 123, 255, 0.5);
-        }
-
-        .form-group select option {
-            padding: 10px;
-            color: #333;
-        }
-
-        /* Add some styling for required validation */
-        .form-group select:invalid {
-            border-color: #dc3545;
-        }
-
-        .form-group select:invalid:focus {
-            border-color: #dc3545;
-            box-shadow: 0 0 4px rgba(220, 53, 69, 0.5);
-        }
-
-
-
-        .form-group input, .form-group textarea {
-            width: 100%;
-            padding: 0.5rem;
-            border: 1px solid #ccc;
-            border-radius: 4px;
+            border-color: #1e3a84;
+            box-shadow: 0 0 0 2px rgba(30, 58, 132, 0.1);
+            outline: none;
         }
 
         .form-group button {
-            background: #33658A;
+            background: #1e3a84;
             color: white;
             border: none;
-            padding: 0.75rem 1.5rem;
-            border-radius: 4px;
+            padding: 12px 24px;
+            border-radius: 8px;
             cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
         }
 
         .form-group button:hover {
-            background: #F6AE2D;
+            background: #2b4c9e;
+            transform: translateY(-1px);
         }
 
-          /* Button Styles */
-          .btn {
-            display: inline-block;
-            padding: 15px 25px;
-            background-color: #F6AE2D; /* Bright Yellow */
+        #submit-btn {
+            width: 100%;
+            padding: 16px;
+            font-size: 16px;
+            background: #1e3a84;
             color: white;
-            text-decoration: none;
+            border: none;
             border-radius: 8px;
-            margin-top: 30px;
-            font-size: 1.5em;
-            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
         }
 
-        .btn:hover {
-            background-color: #FF521B; /* Bright Orange */
+        #submit-btn:hover {
+            background: #2b4c9e;
+            transform: translateY(-2px);
         }
 
+        h2 {
+            color: #1e3a84;
+            margin-bottom: 24px;
+            font-size: 24px;
+        }
+
+        h3 {
+            color: #1e3a84;
+            margin: 24px 0 16px;
+            font-size: 20px;
+        }
         #map {
             height: 400px;
             width: 100%;
+            border-radius: 8px;
+            margin-top: 8px;
+            border: 1px solid #e0e0e0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
+        .category-checkbox {
+            display: none;
+            margin-top: 16px;
+            padding: 16px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .category-checkbox label {
+            display: inline-flex;
+            align-items: center;
+            margin-right: 24px;
+            margin-bottom: 12px;
+            color: #333;
+            cursor: pointer;
+            padding: 8px 16px;
+            background: white;
+            border-radius: 20px;
+            border: 1px solid #e0e0e0;
+            transition: all 0.3s ease;
+        }
+
+        .category-checkbox label:hover {
+            background: #f0f0f0;
+            border-color: #1e3a84;
+        }
+
+        .category-checkbox input[type="checkbox"] {
+            margin-right: 8px;
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        .category-checkbox input[type="checkbox"]:checked + span {
+            color: #1e3a84;
+            font-weight: 500;
+        }
+
+        #toggle-categories {
+            background: #1e3a84;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            margin-bottom: 16px;
+        }
+
+        #toggle-categories:hover {
+            background: #2b4c9e;
+            transform: translateY(-1px);
+        }
+
+        .map-container {
+            position: relative;
+            margin-bottom: 24px;
+        }
+
+        .map-container::after {
+            content: 'Click on the map to select location';
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #666;
+            z-index: 1000;
+        }
     </style>
 </head>
 <body>
+   
+
     <header>
-        <h1>FESTFEED</h1>
+        <h1 style="text-align: center; width: 100%;">FESTFEED</h1>
     </header>
-    
-    <nav>
-        <a href="/">Home</a>
-        <a href="/calendar/">Calendar</a>
-        <a href="/login/">Login</a>
-    </nav>
+     <!-- Back Arrow -->
+     <a href="{% if user.is_authenticated %}{% url 'profile' %}{% else %}{% url 'home' %}{% endif %}" class="back-arrow">
+        <i class="fas fa-arrow-left"></i>
+    </a>
 
     <div class="form-container">
         <h2>Add Event</h2>
@@ -183,6 +277,22 @@
                 <input type="date" id="end_date" name="end_date" >
             </div>
             <div class="form-group">
+                <label for="start_time">Start Time (Optional)</label>
+                <input type="time" id="start_time" name="start_time">
+            </div>
+            <div class="form-group">
+                <label for="end_time">End Time (Optional)</label>
+                <input type="time" id="end_time" name="end_time">
+            </div>
+            <div class="form-group">
+                <label for="entry_fee">Entry Fee (Optional)</label>
+                <input type="number" id="entry_fee" name="entry_fee" step="0.01" min="0">
+            </div>
+            <div class="form-group">
+                <label for="website">Website (Optional)</label>
+                <input type="url" id="website" name="website" placeholder="https://">
+            </div>
+            <div class="form-group">
                 <label for="description">Description</label>
                 <textarea id="description" name="description" rows="4" required></textarea>
             </div>
@@ -194,17 +304,20 @@
                 <label for="old_photos">Old Photos</label>
                 <input type="file" id="old_photos" name="old_photos" accept="image/*" multiple>
             </div>
+            <!-- Event Category -->
             <div class="form-group">
-                <label for="category">Category</label>
-                <select id="category" name="category" required>
-                    <option value="">Select Category</option>
-                    <option value="Music">Music</option>
-                    <option value="Sports">Sports</option>
-                    <option value="Art">Art</option>
-                    <option value="Tech">Tech</option>
-                    <option value="Food">Food</option>
-                </select>
+                <label for="event-category">Event Category</label>
+                <button type="button" id="toggle-categories">Select Categories</button>
+                <div class="category-checkbox">
+                    {% for category in categories %}
+                        <label>
+                            <input type="checkbox" name="category" value="{{ category.id }}" class="category-checkbox-input" > {{ category.name }}
+                        </label><br>
+                    {% endfor %}
+                </div>
             </div>
+            
+            
             <!-- Map for selecting location -->
             <div class="form-group">
                 <label for="location">Event Location (Click on map to select location)</label>
@@ -224,7 +337,7 @@
 
            
 
-            <button type="submit">Submit</button>
+            <button type="submit" id="submit-btn">Submit</button>
         </form>
     </div>
 
@@ -261,6 +374,8 @@
         const createCompetitionField = () => {
             const competitionDiv = document.createElement('div');
             competitionDiv.classList.add('form-group', 'competition-group');
+            const categoryOptions = `{% for category in categories %}<option value="{{ category.id }}">{{ category.name }}</option>{% endfor %}`;
+
             competitionDiv.innerHTML = `
                 <label for="competition-name">Competition Name</label>
                 <input type="text" name="competitions[][name]" required>
@@ -270,7 +385,13 @@
                 <input type="text" name="competitions[][place]" required>
                 <label for="competition-description">Description</label>
                 <textarea name="competitions[][description]" required></textarea>
+                <label for="competition-category">Competition Category</label>
+                <select class="competition-category" name="competitions[][category]" required>
+                    <option value="">Select a category</option>
+                    ${categoryOptions}
+                </select>
                 <button type="button" class="remove-competition">Remove</button>
+                
             `;
             competitionFields.appendChild(competitionDiv);
         };
@@ -284,6 +405,20 @@
                 e.target.parentElement.remove();
             }
         });
+        // Toggle category checkboxes
+        document.querySelector('#toggle-categories').addEventListener('click', function () {
+            const categoryCheckboxes = document.querySelector('.category-checkbox');
+            categoryCheckboxes.style.display = categoryCheckboxes.style.display === 'none' || categoryCheckboxes.style.display === '' ? 'block' : 'none';
+        });
+        document.getElementById("submit-btn").addEventListener("click", function(event) {
+        let checkboxes = document.querySelectorAll(".category-checkbox-input");
+        let checked = Array.from(checkboxes).some(checkbox => checkbox.checked);
+
+        if (!checked) {
+            event.preventDefault(); // Prevent form submission
+            alert("Please select at least one category before continuing.");
+        }
+    });
     </script>
 </body>
 </html>

@@ -449,10 +449,10 @@ h2 {
 
 
         /* Map Section */
-        .map-container {
-            margin: 20px 0;
-            text-align: center;
-        }
+        .map-container:hover #map {
+        border: 1px solid #1E3A8A; /* Change border color on hover */
+        transition: border-color 0.3s;
+    }
 
         .map {
             width: 100%;
@@ -542,11 +542,29 @@ header h1 {
     font-size: 1.5em;
     color: #1E3A8A;
     transition: color 0.3s, transform 0.3s;
+    position: relative;
 }
 
 .header-icons button:hover {
     color: #A7C7E7;
     transform: scale(1.1);
+}
+
+.header-icons button:hover::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 3px 8px;
+    background:whitesmoke;
+    color: #1E3A8A;
+    border-radius: 3px;
+    font-size: 11px;
+    white-space: nowrap;
+    z-index: 1000;
+    margin-top: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 /* Adjustments for Smaller Screens */
@@ -685,77 +703,24 @@ Search Results Section -->
 <header>
     <h1>FESTFEED</h1>
     <div class="header-icons">
-        
-        <button onclick="toggleSearch()">
+        <button onclick="window.location.href='/search/'" data-tooltip="Search Events">
             <i class="fa fa-search"></i>
-          </button>
-          
-          <div id="search-section" style="display: none; position: fixed; top: 50px; left: 50px; width: 100%; height: 100%; background: white; z-index: 1000;">
-            <button onclick="toggleSearch()" style="position: absolute; top: 10px; right: 10px; background: transparent; border: none; font-size: 20px;">✖</button>
-            <div id="search-container">
-                <input type="text" id="search-bar" placeholder="Search events..."  style="width: 80%; padding: 10px; font-size: 16px;">
-                <button onclick="searchEvents()" style="padding: 10px; font-size: 16px;">Search</button>
-                <br>
-                <select id="filter-option" onchange="searchEvents()">
-                    <option value="all">All</option>
-                    <option value="name">Name</option>
-                    <option value="place">Place</option>
-                    <option value="date">Date</option>
-                    <option value="category">Category</option>
-                </select>
-                <select id="category-filter" onchange="searchEvents()">
-                    <option value="">Select Category</option>
-                    <option value="cultural">Cultural</option>
-                    <option value="Music">Music</option>
-                    <option value="Sports">Sports</option>
-                    <option value="Art">Art</option>
-                    <option value="Tech">Tech</option>
-                    <option value="Food">Food</option>
-                </select>
-                
-            </div>
-            <!--  Search Results Section -->
-             <section id="search-results" style="display:none;"> <!-- Hidden initially -->
-                <h2>Search Results</h2>
-                <div class="events-grid"> 
-                    <!-- Results will be displayed here -->
-                 </div>
-            </section> 
-            <!-- Display search results -->
-             <section id="search-results" style="display:none;">
-                <h2>Search Results</h2>
-                <div class="events-grid" id="events-grid">
-                    {% for event in events %}
-                    <div class="event-card" data-category="{{ event.category }}">
-                        <img src="{{ event.first_photo_url }}" alt="{{ event.name }} Image">
-                        <h2>{{ event.name }}</h2>
-                        <p>Place: {{ event.place }}</p>
-                        <p>Date: {{ event.date }}</p>
-                        <a href="{% url 'event_detail' event.id %}" class="view-details">View Details</a>
-                        <button onclick="setReminder('{{ event.id }}')">Set Reminder</button>
-                        <button onclick="bookmarkEvent('{{ event.id }}', this)">
-                            {% if user in event.bookmarked_by.all %}
-                                Unbookmark
-                            {% else %}
-                                Bookmark
-                            {% endif %}
-                        </button>
-                    </div>
-                    {% endfor %}
-                </div>
-            </section></div>
-            <button onclick="window.location.href='/calendar/'"> <i class="fa fa-calendar"></i>  </button>
-       
-        <button onclick="window.location.href='/notifications/'">
-            <i class="fa fa-bell"></i>
-          </button>
-          
-          <!-- Bookmarked Events Button -->
-          <button onclick="window.location.href='/bookmarked-events/'">
+        </button>
+        <button onclick="window.location.href='/calendar/'" data-tooltip="Calendar">
+            <i class="fa fa-calendar"></i>
+        </button>
+        <button onclick="window.location.href='/notifications/'" data-tooltip="Notifications">
+            <i class="fas fa-bell"></i>
+        </button>
+        <button onclick="window.location.href='/bookmarked-events/'" data-tooltip="Bookmarked Events">
             <i class="fa fa-bookmark"></i>
-          </button>
-          <button onclick="window.location.href='/dashboardevent/'"><i class="fa fa-cog"></i></button>
-        <button onclick="window.location.href='/logout/'"><i class="fa fa-user"></i></button>
+        </button>
+        <button onclick="window.location.href='/dashboardevent/'" data-tooltip="Dashboard">
+            <i class="fa fa-cog"></i>
+        </button>
+        <button onclick="window.location.href='/logout/'" data-tooltip="Logout">
+            <i class="fa fa-sign-out"></i>
+        </button>
     </div>
 </header>
 <!-- Events Grid -->
@@ -904,6 +869,30 @@ Search Results Section -->
     </div>
 </section>
 
+<section id="last-month-events">
+    <h2>Events from Last Month</h2>
+    <div class="events-grid">
+        {% for event in last_month_events %}
+        <div class="event-card">
+            <a href="{% url 'event_detail' event.id %}">
+                <img src="{{ event.first_photo_url }}" alt="{{ event.name }} Image">
+                <h2>{{ event.name }}</h2>
+                <p>Place: {{ event.place }}</p>
+                <p>Date: {{ event.date }}</p>
+            </a>
+            <button onclick="setReminder('{{ event.id }}')">Set Reminder</button>
+            <button onclick="bookmarkEvent('{{ event.id }}', this)">
+                {% if user in event.bookmarked_by.all %}
+                    Unbookmark
+                {% else %}
+                    Bookmark
+                {% endif %}
+            </button>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
 <section id="recent-visited-events">
     <h2>Recently Visited Events</h2>
     <div class="events-grid">
@@ -933,17 +922,17 @@ Search Results Section -->
 </div>
 
 <!-- Live Streaming -->
-<div class="live-stream-section">
+<!-- <div class="live-stream-section">
     <h2>Live Streaming</h2>
     <iframe class="live-stream-video" src="https://www.youtube.com/embed/live_stream?channel=UCP0uG-mcMImgKnJz-VjJZmQ" allowfullscreen></iframe>
-</div>
+</div> -->
 
 <!-- Newsletter Section -->
-<div class="newsletter-section">
+<!-- <div class="newsletter-section">
     <h2>Subscribe to our Newsletter</h2>
     <input type="email" placeholder="Enter your email">
     <button>Subscribe</button>
-</div>
+</div> -->
 <!-- Floating Add Event Button -->
 <button class="add-event-btn" onclick="window.location.href='/add_event/'">+</button>
 
@@ -953,7 +942,11 @@ Search Results Section -->
     <h2>Event Locations</h2>
     <iframe class="map" src="https://www.google.com/maps/embed?pb=YOUR_MAP_EMBED_CODE" allowfullscreen></iframe>
 </div> -->
-<div id="map"></div>
+<div class="map-container"></div>
+    <h2>Event Locations</h2>
+    <div id="map" style="border: 1px solid transparent;"></div>
+</div>
+
 
 <footer>
     <p>&copy; 2024 FestFeed. Built with &#x2764; by Event Organizers. <a href="/privacy">Privacy</a> | <a href="/terms">Terms</a></p>
@@ -1050,94 +1043,33 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
-function toggleSearch() {
-  const searchSection = document.getElementById('search-section');
-  searchSection.style.display = searchSection.style.display === 'none' ? 'block' : 'none';
-}
-
-function searchEvents() {
-    
-    
-        var searchText = document.getElementById('search-bar').value.toLowerCase();
-        var filterOption = document.getElementById('filter-option').value;
-        var categoryFilter = document.getElementById('category-filter').value.toLowerCase();
-        var eventCards = document.querySelectorAll('.event-card');
-        var searchResultsFound = false; // Flag to check if any matches were found
-        var searchResultsContainer = document.getElementById('search-results');
-    
-        // Make sure search results section is shown when the function is called
-        searchResultsContainer.style.display = 'block';
-        
-        // Reset the search results display
-        searchResultsContainer.querySelector('.events-grid').innerHTML = ''; // Clear previous search results
-    
-        // Use a Set to track unique events
-        var uniqueEvents = new Set();
-    
-        eventCards.forEach(function (card) {
-            var eventName = card.querySelector('h2').textContent.toLowerCase();
-            var eventPlace = card.querySelector('p').textContent.toLowerCase();
-            var eventDate = card.querySelector('p:nth-of-type(2)').textContent.toLowerCase();
-            var eventCategory = card.getAttribute('data-category').toLowerCase();
-    
-            let matches = false;
-    
-            // Match conditions based on selected filter
-            if (filterOption === 'all') {
-                matches = eventName.includes(searchText) || eventPlace.includes(searchText) || eventDate.includes(searchText) || eventCategory.includes(searchText);
-            } else if (filterOption === 'name') {
-                matches = eventName.includes(searchText);
-            } else if (filterOption === 'place') {
-                matches = eventPlace.includes(searchText);
-            } else if (filterOption === 'date') {
-                matches = eventDate.includes(searchText);
-            } else if (filterOption === 'category') {
-                matches = eventCategory.includes(searchText);
-            }
-    
-            // Additional filter by category
-            if (matches && categoryFilter && eventCategory !== categoryFilter) {
-                matches = false;
-            }
-    
-            if (matches) {
-                // Check if the event is already in the uniqueEvents set
-                if (!uniqueEvents.has(eventName)) {
-                    uniqueEvents.add(eventName); // Add the event to the set
-                    searchResultsContainer.querySelector('.events-grid').appendChild(card.cloneNode(true)); // Append the event card to the search results
-                    searchResultsFound = true;
-                }
-            }
-        });
-    
-        if (!searchResultsFound) {
-            searchResultsContainer.querySelector('.events-grid').innerHTML = '<p>No events found.</p>';
-        }
-
-    // If search text is empty, hide the search results
-    if (searchText === '') {
-        searchResultsContainer.style.display = 'none'; // Hide the results section when search text is empty
-    }
-   
-}
-
-
-    function setReminder(eventId) {
-        alert("Reminder set for event ID: " + eventId);
-    }
-    function toggleDropdown() {
+function toggleDropdown() {
     const dropdown = document.querySelector('.dropdown-menu');
     dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
-    }
-    window.onclick = function(event) {
+}
+
+window.onclick = function(event) {
     if (!event.target.matches('.menu-btn')) {
         const dropdown = document.querySelector('.dropdown-menu');
         if (dropdown && dropdown.style.display === 'block') {
             dropdown.style.display = 'none';
         }
     }
-    };
-    </script>
+};
+
+function goBack() {
+    fetch('/check-login-status/')
+        .then(response => response.json())
+        .then(data => {
+            window.location.href = data.redirect_url;
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            window.location.href = '/';
+        });
+}
+
+</script>
     <script>
     // Logic to request location permission and update user location
     if (navigator.geolocation) {

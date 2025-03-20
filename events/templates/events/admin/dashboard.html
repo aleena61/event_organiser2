@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Admin Dashboard</h2>
+    
+    <!-- Pending Event Edits Section -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h3 class="card-title">Pending Event Edits</h3>
+        </div>
+        <div class="card-body">
+            {% if pending_events %}
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Event Name</th>
+                                <th>Edited By</th>
+                                <th>Edit Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for event in pending_events %}
+                            <tr>
+                                <td>{{ event.name }}</td>
+                                <td>{{ event.user.username }}</td>
+                                <td>{{ event.updated_at|date:"F j, Y, g:i a" }}</td>
+                                <td>
+                                    <a href="{% url 'approve_event_edit' event.id %}" class="btn btn-primary btn-sm">
+                                        Review Changes
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-muted">No pending event edits to review.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Other admin sections can be added here -->
+</div>
+{% endblock %} 

@@ -1,20 +1,30 @@
 # forms.py
 from django import forms
-from .models import Event, EventPhoto, OldPhoto, Competition
+from .models import Event, EventPhoto, OldPhoto, Competition,Category
 from django.contrib.auth.forms import AuthenticationForm
 class EventForm(forms.ModelForm):
+    category = forms.ModelMultipleChoiceField(
+        queryset=Category.objects.all(),  # Allow users to select multiple categories
+               widget=forms.CheckboxSelectMultiple(),  # This will display checkboxes
+        required=True  # Ensure at least one category is selected
+    )
     class Meta:
         model = Event
-        fields = ['name', 'place', 'date','category', 'description','newsletter','latitude','longitude','phone','email','end_date']
+        fields = ['name', 'place', 'date','category', 'description','latitude','longitude','address','phone','email','end_date','start_time','end_time','entry_fee','website']
 
         
-        newsletter = forms.CharField(widget=forms.Textarea, required=False)
+        
 
 
 class CompetitionForm(forms.ModelForm):
+    category = forms.ModelMultipleChoiceField(
+        queryset=Category.objects.all(),
+        widget=forms.SelectMultiple(attrs={"multiple": True})
+    )
+
     class Meta:
         model = Competition
-        fields = ['name', 'date', 'place', 'description']
+        fields = ['name', 'date', 'place', 'description','category']
 
 class EventPhotoForm(forms.ModelForm):
     class Meta:

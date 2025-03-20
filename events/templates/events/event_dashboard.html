@@ -77,7 +77,11 @@
             {% for event in events %}
             <tr>
                 <td>{{ event.name }}</td>
-                <td>{{ event.category }}</td>
+                <td>
+                    {% for category in event.category.all %}
+                        {{ category.name }}{% if not forloop.last %}, {% endif %}
+                    {% endfor %}
+                </td>
                 <td>{{ event.visits }}</td>
                 <td class="action-btns">
                     <a href="{% url 'event_detail' event.id %}" class="view-btn">View</a>

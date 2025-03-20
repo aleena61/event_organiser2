@@ -5,6 +5,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.utils.html import strip_tags
 
 # User Profile to store location
 class UserProfile(models.Model):
@@ -24,6 +25,15 @@ def create_user_profile(sender, instance, created, **kwargs):
 def save_user_profile(sender, instance, **kwargs):
     instance.profile.save()
     
+# Define the Category model to hold different categories
+from django.db import models
+
+class Category(models.Model):
+
+    name = models.CharField(max_length=20, unique=True)
+
+    def __str__(self):
+        return self.name  # This will show the human-readable name
 
 class Event(models.Model):
 
@@ -40,12 +50,16 @@ class Event(models.Model):
     place = models.CharField(max_length=100)
     date = models.DateField()
     end_date = models.DateField(null=True, blank=True)
-    address=models.CharField(max_length=100,default="")
+    start_time = models.TimeField(null=True, blank=True)  # New field for start time
+    end_time = models.TimeField(null=True, blank=True)    # New field for end time
+    entry_fee = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)  # New field for entry fee
+    website = models.URLField(max_length=200, null=True, blank=True)  # New field for website
+    address = models.CharField(max_length=100, default="")
     description = models.TextField()
     latitude = models.FloatField(default=0.0)
     longitude = models.FloatField(default=0.0)
     newsletter = models.TextField(blank=True, null=True)  # Newsletter field
-    category = models.CharField(max_length=20, choices=CATEGORY_CHOICES, default='cultural')
+    category = models.ManyToManyField(Category, related_name='events')
     visits = models.IntegerField(default=0)  # New field to track event visits
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="events")  # Link event to user
     bookmarked_by = models.ManyToManyField(User, related_name="bookmarked_events", blank=True)
@@ -75,6 +89,9 @@ class Event(models.Model):
         super().clean()
         if self.end_date and self.end_date < self.date:
             raise ValidationError("End date cannot be earlier than the start date.")
+    def get_plain_text_newsletter(self):
+        """Returns the newsletter content as plain text (stripping HTML)."""
+        return strip_tags(self.newsletter) if self.newsletter else ""
 class UserCalendar(models.Model):
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
     added_on = models.DateTimeField(auto_now_add=True)  # When the event was added to the calendar
@@ -102,6 +119,7 @@ class Competition(models.Model):
     date = models.DateField()
     place = models.CharField(max_length=100)
     description = models.TextField()
+    category = models.ManyToManyField(Category, related_name='competitions')
 
     def __str__(self):
         return self.name
@@ -148,3 +166,4 @@ class Notification(models.Model):
     
 
     
+

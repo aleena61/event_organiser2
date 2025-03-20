@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Event Organizer{% endblock %}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kaushan+Script&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            background: white;
+            color: #333;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: rgba(255, 255, 255, 0.9);
+            color: #1E3A8A;
+            padding: 10px 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 2em;
+            font-family: 'Kaushan Script', cursive;
+        }
+
+        .header-icons {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .header-icons button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.5em;
+            color: #1E3A8A;
+            transition: color 0.3s, transform 0.3s;
+        }
+
+        .header-icons button:hover {
+            color: #A7C7E7;
+            transform: scale(1.1);
+        }
+
+        nav {
+            background-color: #33658A;
+            padding: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        nav ul {
+            list-style: none;
+            display: flex;
+            justify-content: center;
+            padding: 0;
+        }
+
+        nav ul li {
+            margin: 0 15px;
+        }
+
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+            font-size: 1.2em;
+            padding: 8px 15px;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+
+        nav ul li a:hover {
+            background-color: #F6AE2D;
+        }
+
+        .content {
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            background-color: #33658A;
+            color: white;
+            margin-top: 40px;
+        }
+
+        footer a {
+            color: white;
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Add Event Button */
+        .add-event-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #1E3A8A;
+            color: white;
+            padding: 15px;
+            border-radius: 50%;
+            font-size: 1.5em;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            transition: background-color 0.3s, transform 0.3s;
+            cursor: pointer;
+            border: none;
+        }
+
+        .add-event-btn:hover {
+            background-color: #A7C7E7;
+            transform: scale(1.1);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            header {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .header-icons {
+                margin-top: 10px;
+            }
+
+            nav ul {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            nav ul li {
+                margin: 5px 0;
+            }
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <header>
+        <h1>FESTFEED</h1>
+        <div class="header-icons">
+            <button onclick="window.location.href='/calendar/'">
+                <i class="fa fa-calendar"></i>
+            </button>
+            <button onclick="window.location.href='/notifications/'">
+                <i class="fa fa-bell"></i>
+            </button>
+            <button onclick="window.location.href='/bookmarked-events/'">
+                <i class="fa fa-bookmark"></i>
+            </button>
+            <button onclick="window.location.href='/dashboardevent/'">
+                <i class="fa fa-cog"></i>
+            </button>
+            <button onclick="window.location.href='/logout/'">
+                <i class="fa fa-user"></i>
+            </button>
+        </div>
+    </header>
+
+    <nav>
+        <ul>
+            <li><a href="/">Home</a></li>
+            <li><a href="{% url 'calendar' %}">Calendar</a></li>
+            <li><a href="{% url 'bookmarked_events' %}">My Bookmarks</a></li>
+        </ul>
+    </nav>
+
+    <div class="content">
+        {% block content %}{% endblock %}
+    </div>
+
+    <footer>
+        <p>&copy; 2024 FestFeed. Built with &#x2764; by Event Organizers. 
+            <a href="/privacy">Privacy</a> | <a href="/terms">Terms</a>
+        </p>
+    </footer>
+
+    <button class="add-event-btn" onclick="window.location.href='/add_event/'">+</button>
+
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html> 

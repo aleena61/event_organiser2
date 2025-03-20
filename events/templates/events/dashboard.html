@@ -275,6 +275,116 @@ h2 {
                 border-radius: 8px;
                 transition: transform 0.2s, box-shadow 0.2s;
                 }
+
+        /* Sidebar styles */
+        .dashboard-container {
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        .sidebar {
+            width: 200px;
+            background-color: #1E3A8A;
+            color: white;
+            padding: 20px;
+            position: fixed;
+            height: 100vh;
+            z-index: 1000;
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar.collapsed {
+            transform: translateX(-200px);
+        }
+        
+        .sidebar h2 {
+            color: white;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 1.2rem;
+        }
+        
+        .nav-links {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .nav-links li {
+            margin-bottom: 10px;
+        }
+        
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            padding: 10px 15px;
+            display: block;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+        
+        .nav-links a:hover {
+            background-color: #2C5282;
+        }
+        
+        .nav-links a.active {
+            background-color: #2C5282;
+        }
+        
+        .main-content {
+            margin-left: 200px;
+            padding: 20px;
+            flex: 1;
+            transition: margin-left 0.3s ease;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .main-content.expanded {
+            margin-left: 0;
+        }
+
+        .graph-section {
+            display: none;
+            height: calc(100vh - 100px);
+            overflow: hidden;
+        }
+        
+        .graph-section.active {
+            display: block;
+        }
+
+        .chart-container {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+        }
+
+        .chart-container canvas {
+            flex: 1;
+            max-height: calc(100vh - 200px);
+        }
+
+        .back-button {
+            position: relative;
+            left: 0;
+            top: 0;
+            margin-bottom: 20px;
+            color: white;
+            text-decoration: none;
+            display: block;
+            padding: 10px;
+            text-align: center;
+            background-color: #2C5282;
+            border-radius: 5px;
+        }
+
+        .back-button:hover {
+            background-color: #2B6CB0;
+        }
     </style>
 </head>
 <body>
@@ -282,89 +392,93 @@ h2 {
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Kaushan+Script&display=swap" rel="stylesheet">
-    <a id="backButton" class="back-button" href="{% url 'home'%}">
-        <i class="fas fa-arrow-left"></i> <!-- Font Awesome left arrow icon -->
-    </a>
-   <div class="row mb-12">
-        <h1 style="text-align:center;padding-top:30px">Event Dashboard</h1><br>
-        <div class="text-center mb-3">
-            <a href="{%url 'manage_events'%}" id="importButton" class="btn btn-success">Review Events</a>
-             <a href="{%url 'notifications'%}" id="importButton" class="btn btn-success">Notifications</a>
-         </div>
-        <div class="col-md-6">
-           <div class="chart-container">
-            <h2 style="text-align:center">Event Statistics</h2>
-            <div class="row mb-3">
-                <div class="filter col-md-2">
-                   <label for="timeFilter" class="form-label">Time Range</label>
-                   <select id="timeFilter" class="form-select select-dropdown" onchange="handleTimeFilterChange()">
-                      <option value="">All</option>
-                      <option value="thisYear">This Year</option>
-                      <option value="thisMonth">This Month</option>
-                      <option value="thisWeek">This Week</option>
-                      <option value="dateRange">Date Range</option>
-                   </select>
-                </div>
-                <div class="filter col-md-2" id="startDateContainer" style="display: none;">
-                   <label for="startDate" class="form-label">Start Date</label>
-                   <input type="date" id="startDate" class="form-control" onchange="checkDateRangeAndUpdateGraph()">
-                </div>
-                <div class="filter col-md-2" id="endDateContainer" style="display: none;">
-                   <label for="endDate" class="form-label">End Date</label>
-                   <input type="date" id="endDate" class="form-control" onchange="checkDateRangeAndUpdateGraph()">
-                </div>
-                <div class="filter col-md-2">
-                   <label for="category" class="form-label">Category</label>
-                   <select id="category" class="form-select select-dropdown" onchange="updateGraph()">
-                      <option value="">All</option>
-                      {% for label in category_labels %}
-                      <option value="{{ label }}">{{ label }}</option>
-                      {% endfor %}
-                   </select>
-                </div>
-                <div class="filter col-md-2">
-                   <label for="visits" class="form-label">Visits</label>
-                   <select id="visits" class="form-select select-dropdown" onchange="updateGraph()">
-                      <option value="">All</option>
-                      
-                      <option value="100">Less than 100</option>
-                      <option value="50">Less than 50 </option>
-                      <option value="10">Less than 10</option>
-                      
-                   </select>
-                </div>
-               </div>
-
-
-              <canvas id="eventChart"></canvas>
-           </div>
-        </div>
-        <div class="col-md-6">
-      
-            <div class="chart-container">
-                <h2 style="text-align:center">Total Event Visits</h2>
-                <canvas id="eventViewsChart" width="100" height="150"></canvas>
-            </div>
-         </div>
-    </div>
-
-
-
-
-    <div class="row mb-12">
-   
     
-     <div class="col-md-6">
-      
-        <div class="chart-container">
-            <h2 style="text-align:center">Event Categories</h2>
-        <canvas id="categoriesChart" width="100" height="150"></canvas>
-    </div>
-</div>
-</div>
-{% block script %}
-    <script>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <div class="sidebar" id="sidebar">
+            <a href="{% url 'home'%}" class="back-button">
+                <i class="fas fa-arrow-left"></i> Back
+            </a>
+            <h2>Dashboard</h2>
+            <ul class="nav-links">
+                <li><a href="#" class="active" data-graph="event-stats">Event Statistics</a></li>
+                <li><a href="#" data-graph="event-views">Total Event Visits</a></li>
+                <li><a href="#" data-graph="categories">Event Categories</a></li>
+                <li><a href="{% url 'manage_events' %}">Review Events</a></li>
+                <li><a href="{% url 'notifications' %}">Notifications</a></li>
+            </ul>
+        </div>
 
+        <!-- Main Content -->
+        <div class="main-content" id="mainContent">
+            <h1 style="text-align:center;padding-top:30px">Admin Dashboard</h1>
+
+            <!-- Event Statistics Graph -->
+            <div class="graph-section active" id="event-stats">
+                <div class="chart-container">
+                    <h2 style="text-align:center">Event Statistics</h2>
+                    <div class="row mb-3">
+                        <div class="filter col-md-2">
+                            <label for="timeFilter" class="form-label">Time Range</label>
+                            <select id="timeFilter" class="form-select select-dropdown" onchange="handleTimeFilterChange()">
+                                <option value="">All</option>
+                                <option value="thisYear">This Year</option>
+                                <option value="thisMonth">This Month</option>
+                                <option value="thisWeek">This Week</option>
+                                <option value="dateRange">Date Range</option>
+                            </select>
+                        </div>
+                        <div class="filter col-md-2" id="startDateContainer" style="display: none;">
+                            <label for="startDate" class="form-label">Start Date</label>
+                            <input type="date" id="startDate" class="form-control" onchange="checkDateRangeAndUpdateGraph()">
+                        </div>
+                        <div class="filter col-md-2" id="endDateContainer" style="display: none;">
+                            <label for="endDate" class="form-label">End Date</label>
+                            <input type="date" id="endDate" class="form-control" onchange="checkDateRangeAndUpdateGraph()">
+                        </div>
+                        <div class="filter col-md-2">
+                            <label for="category" class="form-label">Category</label>
+                            <select id="category" class="form-select select-dropdown" onchange="updateGraph()">
+                                <option value="">All</option>
+                                {% for label in category_labels %}
+                                <option value="{{ label }}">{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="filter col-md-2">
+                            <label for="visits" class="form-label">Visits</label>
+                            <select id="visits" class="form-select select-dropdown" onchange="updateGraph()">
+                                <option value="">All</option>
+                                <option value="100">Less than 100</option>
+                                <option value="50">Less than 50</option>
+                                <option value="10">Less than 10</option>
+                            </select>
+                        </div>
+                    </div>
+                    <canvas id="eventChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Total Event Visits Graph -->
+            <div class="graph-section" id="event-views">
+                <div class="chart-container">
+                    <h2 style="text-align:center">Total Event Visits</h2>
+                    <canvas id="eventViewsChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Event Categories Graph -->
+            <div class="graph-section" id="categories">
+                <div class="chart-container">
+                    <h2 style="text-align:center">Event Categories</h2>
+                    <canvas id="categoriesChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% block script %}
+    <script>
         function handleTimeFilterChange() {
             const timeFilter = document.getElementById('timeFilter').value;
             const startDateContainer = document.getElementById('startDateContainer');
@@ -611,6 +725,38 @@ h2 {
 
        
         createGraph(eventsData);
+
+        // Update the graph links functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const navLinks = document.querySelectorAll('.nav-links a[data-graph]');
+            const graphSections = document.querySelectorAll('.graph-section');
+
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    // Remove active class from all links and sections
+                    navLinks.forEach(l => l.classList.remove('active'));
+                    graphSections.forEach(s => s.classList.remove('active'));
+                    
+                    // Add active class to clicked link and corresponding section
+                    this.classList.add('active');
+                    const targetId = this.getAttribute('data-graph');
+                    document.getElementById(targetId).classList.add('active');
+                });
+            });
+
+            // Add click outside to collapse sidebar
+            document.addEventListener('click', function(e) {
+                const sidebar = document.getElementById('sidebar');
+                const navLinks = document.querySelector('.nav-links');
+                
+                if (!sidebar.contains(e.target) && !e.target.closest('.nav-links')) {
+                    sidebar.classList.add('collapsed');
+                    document.getElementById('mainContent').classList.add('expanded');
+                }
+            });
+        });
     </script>
     {% endblock script %}
 </body>
