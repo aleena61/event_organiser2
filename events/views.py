@@ -334,7 +334,12 @@ def event_detail(request, event_id):
     old_photos = event.old_photos.all()
     competitions = event.competitions.all()
     categories = Category.objects.all()  # Fetch categories from the database
-
+ 
+    # Get related events in the same categories but exclude the current event and filter future events
+    related_events = Event.objects.filter(
+        category__in=event.category.all(),
+        date__gte=timezone.now().date()  # Only upcoming events
+    ).exclude(id=event.id).distinct()
 
     # Pass all the data to the template
     return render(request, 'events/event_detail.html', {
@@ -345,6 +350,7 @@ def event_detail(request, event_id):
         'categories': categories,
         'user_rating':user_rating,
         'star_range':range(1,6),
+        'related_events':related_events,
     })
 
 
@@ -400,6 +406,12 @@ def generate_newsletter(event, word_limit=250):
 
 
 
+from django.contrib import messages
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.models import User
+from django.core.mail import send_mail
+from django.shortcuts import render, redirect
+
 def login_view(request):
     if request.method == 'POST':
         username = request.POST['username']
@@ -407,37 +419,35 @@ def login_view(request):
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
-            if username=='john':
+            messages.success(request, f"Welcome back, {username}!", extra_tags='login_success')
+
+            if username == 'john':
                 return redirect('dashboard_view_admin')
             else:
-                return redirect('profile')  # Replace 'home' with your desired redirect URL
+                return redirect('profile')  
         else:
-            messages.error(request, 'Invalid username or password.')
+            messages.error(request, 'Invalid username or password. Please try again.', extra_tags='login_error')
+    
     return render(request, 'events/login.html')
-
-
 
 
 def signup_view(request):
     if request.method == 'POST':
-        username = request.POST.get('username')  # Match input field name
+        username = request.POST.get('username')  
         email = request.POST.get('email')
         password = request.POST.get('password')
 
-        # Validate inputs
         if not username or not email or not password:
-            messages.error(request, "All fields are required.")
+            messages.warning(request, "All fields are required.", extra_tags='signup_warning')
             return redirect('signup_view')
 
-        # Check if the username or email is already taken
         if User.objects.filter(username=username).exists():
-            messages.error(request, "Username already exists. Please choose another.")
+            messages.error(request, "Username already exists. Please choose another.", extra_tags='signup_error')
             return render(request, 'events/login.html', {'show_signup': True})
         elif User.objects.filter(email=email).exists():
-            messages.error(request, "Email is already registered. Try logging in.")
+            messages.error(request, "Email is already registered. Try logging in.", extra_tags='signup_error')
             return render(request, 'events/login.html', {'show_signup': True})
 
-        # Create the user
         try:
             user = User.objects.create_user(
                 username=username,
@@ -447,27 +457,26 @@ def signup_view(request):
             user.save()
 
             subject = 'Welcome to Festfeed'
-            message = f'Hi {username},\n\nThank you for signing up our platform. We are excited to have you onboard!'
-            from_email = 'festfeed00@gmail.com'  # Replace with your email
+            message = f'Hi {username},\n\nThank you for signing up on our platform. We are excited to have you onboard!'
+            from_email = 'festfeed00@gmail.com'  
             recipient_list = [email]
             send_mail(subject, message, from_email, recipient_list)
-            
-            messages.success(request, "Account created successfully. You can now log in.")
+
+            messages.success(request, f"Account created successfully, {username}! You can now log in.", extra_tags='signup_success')
             return redirect('login_view')
+
         except Exception as e:
-            messages.error(request, f"An unexpected error occurred: {str(e)}")
+            messages.error(request, f"An unexpected error occurred: {str(e)}", extra_tags='signup_error')
             return redirect('signup_view')
 
-    # Render signup page for GET requests
-    return render(request, 'events/login.html',{'show_signup': False})
+    return render(request, 'events/login.html', {'show_signup': False})
 
 
-
-# Logout View
 def logout_view(request):
     logout(request)
-    messages.success(request, 'You have been logged out.')
+    messages.info(request, 'You have been logged out. Come back soon!', extra_tags='logout_info')
     return redirect('home')
+
 
 from django.db.models import Q
 
@@ -1353,4 +1362,87 @@ def set_reminder(request):
             return JsonResponse({"success": False, "error": "Event not found"})
     
     return JsonResponse({"success": False, "error": "Invalid request"})
+@login_required
+def request_event_deletion(request, event_id):
+    """Allows an event creator to request event deletion (admin approval required)."""
+    event = get_object_or_404(Event, id=event_id, user=request.user)
+
+    if event.status == 'Approved':  # Ensure it's not already requested
+        event.delete_requested = True
+        event.status = 'pending_deletion'
+        event.save()
+
+        # Notify admin (assuming there's only one admin user)
+        admin_users = User.objects.filter(is_staff=True)  # Change logic if needed
+        for admin in admin_users:
+            Notification.objects.create(
+                user=admin,
+                message=f"Event '{event.name}' has a pending deletion request.",
+            )
+
+        messages.success(request, "Deletion request sent for admin approval.")
+    
+    return redirect('event_detail', event_id=event.id)
+@login_required
+def manage_deletion_requests(request):
+    """Admin view to approve or reject event deletion requests."""
+    if not is_admin(request.user):  # Only allow admins
+        messages.error(request, "You don't have permission to access this page.")
+        return redirect('home')
+
+    pending_deletion_events = Event.objects.filter(status='pending_deletion')
+
+    if request.method == 'POST':
+        event_id = request.POST.get('event_id')
+        action = request.POST.get('action')
+
+        try:
+            event = Event.objects.get(id=event_id)
+
+            if action == 'approve':
+                event.status = 'deleted'
+                event.delete()  # Actually remove the event from the database
+
+                # Notify event creator
+                Notification.objects.create(
+                    user=event.user,
+                    message=f"Your event '{event.name}' has been deleted by the admin.",
+                )
+
+                # Notify bookmarked users
+                bookmarked_users = event.bookmarked_by.all()
+                for user in bookmarked_users:
+                    Notification.objects.create(
+                        user=user,
+                        message=f"The event '{event.name}' you bookmarked has been deleted.",
+                    )
+
+                # Notify reminder users
+                reminder_users = UserAddedEvent.objects.filter(event=event).values_list('user', flat=True)
+                for user_id in reminder_users:
+                    Notification.objects.create(
+                        user_id=user_id,
+                        message=f"The event '{event.name}' you set a reminder for has been deleted.",
+                    )
+
+                messages.success(request, f"Event '{event.name}' has been deleted successfully.")
+
+            elif action == 'reject':
+                event.delete_requested = False
+                event.status = 'Approved'
+                event.save()
+
+                Notification.objects.create(
+                    user=event.user,
+                    message=f"Your event deletion request for '{event.name}' has been rejected by the admin.",
+                )
+
+                messages.warning(request, f"Event deletion request for '{event.name}' has been rejected.")
+
+        except Event.DoesNotExist:
+            messages.error(request, "Event not found.")
+
+    return render(request, 'events/manage_deletion_requests.html', {
+        'pending_deletion_events': pending_deletion_events,
+    })
 

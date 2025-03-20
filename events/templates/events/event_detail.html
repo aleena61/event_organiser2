@@ -548,14 +548,38 @@
         .rating-star.rated {
             color: gold; /* Highlight when rated */
         }
+        .related-events-scroll {
+        display: flex;
+        overflow-x: auto;
+        gap: 10px;
+        padding: 10px 0;
+        scrollbar-width: thin;
+    }
+
+    .related-event-card {
+        flex: 0 0 auto;
+        width: 150px;
+        text-align: center;
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .related-event-card img {
+        width: 100%;
+        height: 100px;
+        object-fit: cover;
+        border-radius: 8px;
+    }
+
 
     </style>
 </head>
 <body>
-    <!-- Back Arrow -->
-    <a href="{% if user.is_authenticated %}{% url 'profile' %}{% else %}{% url 'home' %}{% endif %}" class="back-arrow">
-        <i class="fas fa-arrow-left"></i>
+    <a href="{% if request.META.HTTP_REFERER and 'edit' in request.META.HTTP_REFERER %}{% url 'profile' %}{% else %}{{ request.META.HTTP_REFERER|default:'/' }}{% endif %}" class="back-arrow">
+        <i class="fas fa-arrow-left"></i> Back
     </a>
+    
+
     <div class="event-header">
         <div class="event-info">
             <div class="event-image">
@@ -612,9 +636,21 @@
                         <a href="{% url 'edit_event' event.id %}" class="action-button primary-button">
                             <i class="fas fa-edit"></i> Edit Event
                         </a>
-                        <a href="{% url 'delete_event' event.id %}" class="action-button admin-button">
-                            <i class="fas fa-trash"></i> Delete Event
-                        </a>
+                        
+                        
+                            {% if event.status == "Approved" %}
+                                <a href="{% url 'request_event_deletion' event.id %}" 
+                                class="action-button danger-button"
+                                onclick="event.preventDefault(); document.getElementById('delete-form').submit();">
+                                    <i class="fas fa-trash-alt"></i> Request Deletion
+                                </a>
+                                <form id="delete-form" action="{% url 'request_event_deletion' event.id %}" method="post" style="display: none;">
+                                    {% csrf_token %}
+                                </form>
+                            {% elif event.status == "pending_deletion" %}
+                                <p class="text-warning"><i class="fas fa-clock"></i> Deletion request pending admin approval.</p>
+                            {% endif %}
+                    
                     {% endif %}
                     <button class="action-button secondary-button" onclick="showSharePopup()">
                         <i class="fas fa-share"></i> Share
@@ -672,7 +708,7 @@
                 <div class="detail-item">
                     <strong>Website</strong>
                     <p>{{ event.website }}</p>
-    </div>
+                </div>
                 {% endif %}
             </div>
         
@@ -703,7 +739,7 @@
         <div class="map-section">
             <h2 class="section-title">Event Location</h2>
             <div id="map"></div>
-    </div>
+        </div>
     
         <!-- Competitions Section -->
         {% if event.competitions.all %}
@@ -711,9 +747,9 @@
             <h2 class="section-title">Competitions</h2>
             <div class="competitions-grid">
                 {% for competition in event.competitions.all %}
-            <div class="competition-card">
+                <div class="competition-card">
                         <h3>{{ competition.name }}</h3>
-                <p>{{ competition.description }}</p>
+                        <p>{{ competition.description }}</p>
                         <div class="competition-details">
                             <div class="competition-detail-item">
                                 <strong>Date:</strong>
@@ -732,10 +768,10 @@
                                 </p>
                             </div>
                         </div>
-            </div>
-        {% endfor %}
-    </div>
-</div>
+                 </div>
+                {% endfor %}
+             </div>
+        </div>
         {% endif %}
 
         <!-- Newsletter Section -->
@@ -773,7 +809,7 @@
             </div>
         </div>
         {% endif %}
-    </div>
+    
 
     <!-- Photo Popup -->
     <div class="popup-overlay" id="photoPopup">
@@ -781,7 +817,7 @@
             <span class="close-popup" onclick="closePopup()">&times;</span>
             <img id="popupImage" src="" alt="Event photo">
     </div>
-</div>
+    </div>
 
     <!-- Share Popup -->
     <div class="share-popup" id="sharePopup">
@@ -793,7 +829,21 @@
             </div>
             <button class="action-button secondary-button" onclick="closeSharePopup()" style="margin-top: 16px;">Close</button>
         </div>
-</div>
+    </div>
+    {% if related_events %}
+    <div class="related-events-section">
+        <h2 class="section-title">Similar Upcoming Events</h2>
+        <div class="related-events-scroll">
+            {% for related_event in related_events %}
+                <a href="{% url 'event_detail' related_event.id %}" class="related-event-card">
+                    <img src="{{ related_event.first_photo_url }}" alt="{{ related_event.name }}">
+                    <p>{{ related_event.name }}</p>
+                </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    
 
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 <script>

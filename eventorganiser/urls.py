@@ -41,6 +41,9 @@ urlpatterns = [
 
     path('event/<int:event_id>/rate/', views.rate_event, name='rate_event'),
     path('set-reminder/', views.set_reminder, name='set_reminder'), 
+
+    path('dashboard/manage-deletion-requests/', views.manage_deletion_requests, name='manage_deletion_requests'),  
+    path('event/request-deletion/<int:event_id>/', views.request_event_deletion, name='request_event_deletion'),
 ]
 
 if settings.DEBUG:
