@@ -537,6 +537,18 @@
             position: absolute;
         }
         }
+        .rating-star {
+            font-size: 24px;
+            color: black; /* Default */
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+
+        .rating-star:hover,
+        .rating-star.rated {
+            color: gold; /* Highlight when rated */
+        }
+
     </style>
 </head>
 <body>
@@ -558,7 +570,23 @@
                             onclick="bookmarkEvent('{{ event.id }}', this)" 
                             title="{% if user in event.bookmarked_by.all %}Remove Bookmark{% else %}Bookmark Event{% endif %}"></i>
                         {% endif %}
-                </div>
+                    </div>
+                    <!-- Rating System -->
+                    <div class="event-rating">
+                        <p><strong>Average Rating:</strong> <span id="averageRating">{{ event.average_rating }}</span> / 5</p>
+                        
+                        {% if user.is_authenticated %}
+                            <div class="star-rating">
+                                {% for star in star_range %}
+                                    <i class="fas fa-star rating-star" data-value="{{ star }}"></i>
+                                {% endfor %}
+                            </div>
+                            <p id="ratingMessage" style="color: green; display: none;">Your rating has been submitted!</p>
+                        {% else %}
+                            <p><em>Login to rate this event.</em></p>
+                        {% endif %}
+                    </div>
+
                     <div class="event-meta">
                         <div class="event-date">
                             <p><strong>Date:</strong> {{ event.date }}
@@ -856,6 +884,54 @@
             }
             return cookieValue;
         }
-</script>
+        
+        document.addEventListener("DOMContentLoaded", function() {
+    const stars = document.querySelectorAll(".rating-star");
+    let selectedRating = 0; // Store user's current rating
+
+    function highlightStars(rating) {
+        stars.forEach((star, index) => {
+            star.classList.toggle("rated", index < rating);
+        });
+    }
+
+    let userRating = parseInt("{{ user_rating|default:0 }}"); // Rendered from Django
+    highlightStars(userRating);
+    selectedRating = userRating;
+
+    stars.forEach(star => {
+        star.addEventListener("mouseover", function() {
+            highlightStars(parseInt(this.getAttribute("data-value")));
+        });
+
+        star.addEventListener("mouseout", function() {
+            highlightStars(selectedRating);
+        });
+
+        star.addEventListener("click", function() {
+            const ratingValue = parseInt(this.getAttribute("data-value"));
+            selectedRating = ratingValue; 
+
+            console.log("Submitting rating:", ratingValue); // Debugging
+
+            fetch("{% url 'rate_event' event.id %}", {
+                    method: "POST",
+                    headers: {
+                        "X-CSRFToken": "{{ csrf_token }}",
+                        "Content-Type": "application/x-www-form-urlencoded"
+                    },
+                    body: "rating=" + ratingValue
+                })
+                .then(response => response.json())
+                .then(data => console.log("Response:", data))
+                .catch(error => console.error("Request failed:", error));
+
+        });
+    });
+});
+
+       
+    </script>
+
 </body>
 </html>

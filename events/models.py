@@ -77,6 +77,15 @@ class Event(models.Model):
 
     phone = models.CharField(max_length=100,default="0")
     email = models.CharField(max_length=100,default="")
+    average_rating = models.FloatField(default=0.0)  # Store the average rating
+
+    def update_average_rating(self):
+        ratings = self.ratings.all()
+        if ratings.exists():
+            self.average_rating = sum(r.rating for r in ratings) / ratings.count()
+        else:
+            self.average_rating = 0.0
+        self.save()
     def __str__(self):
         return self.name
     def first_photo_url(self):
@@ -162,6 +171,25 @@ class Notification(models.Model):
 
     def __str__(self):
         return f"Notification for {self.user.username}: {self.message[:50]}"
+class Rating(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='ratings')
+    rating = models.IntegerField(null=False, blank=False, default=1)  # Ensure default value
+
+    class Meta:
+        unique_together = ('user', 'event')  # One rating per user per event
+
+from django.db import models
+from django.contrib.auth.models import User
+
+class UserAddedEvent(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    event = models.ForeignKey('Event', on_delete=models.CASCADE)
+    added_on = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'event')  # Prevent duplicate reminders
+
 
     
 

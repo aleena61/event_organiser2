@@ -821,6 +821,29 @@ Search Results Section -->
    
 </div>
 </section>
+<section id="sorted-events">
+    <h2>Highest-Rated Events</h2>
+    <div class="events-grid">
+        {% for event in sorted_events %}
+        <div class="event-card">
+            <a href="{% url 'event_detail' event.id %}">
+            <img src="{{ event.first_photo_url }}" alt="Event Image">
+            <h3>{{ event.name }}</h3>
+            <p>Location: {{ event.place }}</p>
+            <p>Date: {{ event.date }}</p>
+           </a>
+           <button onclick="setReminder('{{ event.id }}')">Set Reminder</button>
+           <button onclick="bookmarkEvent('{{ event.id }}', this)">
+               {% if user in event.bookmarked_by.all %}
+                   Unbookmark
+               {% else %}
+                   Bookmark
+               {% endif %}
+           </button>
+       </div>
+       {% endfor %}
+    </div>
+</section>
 <section id="upcoming-events">
     <h2>Upcoming Events</h2>
     <div class="events-grid">
@@ -1093,6 +1116,29 @@ function goBack() {
         alert('Geolocation is not supported by your browser.');
     }
 </script>
+<script>
+    function setReminder(eventId) {
+        fetch("{% url 'set_reminder' %}", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": "{{ csrf_token }}" // Important for security
+            },
+            body: JSON.stringify({ event_id: eventId })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert("Event added to your User-Added Calendar!");
+                location.reload(); // Refresh to update the calendar
+            } else {
+                alert("Error: " + data.error);
+            }
+        })
+        .catch(error => console.error("Error:", error));
+    }
+</script>
+
 
 </body>
 </html>

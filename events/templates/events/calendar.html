@@ -1,4 +1,3 @@
-
 {% load static %}
 
 <!DOCTYPE html>
@@ -280,26 +279,28 @@ header h1 {
             value="{{ current_month|date:'M' }} {{ current_year }}">
             
         </div>
-            <div class="calendar">
+        <div class="calendar">
                 
-                {% for day in days_in_month %}
-                    <div class="day {% if day.user_added_events.count > 0 %}with-events{% endif %} {% if day.date == current_date %}current-day{% endif %}">
-                        <div>{{ day.day }}</div>
-                        <div class="event-count">
-                            {% if day.user_added_events.count > 0 %}
-                                {{ day.user_added_events.count }} events
-                            {% endif %}
-                        </div>
-                        {% for event in day.user_added_events %}
-                            <div class="event-popup">
-                                <strong>{{ event.name }}</strong><br>
-                                <span>{{ event.place }}</span><br>
-                                <a href="{% url 'event_detail' event.id %}">Details</a>
-                            </div>
-                        {% endfor %}
+            {% for day in days_in_month %}
+                <div class="day {% if day.user_added_events.count > 0 %}with-events{% endif %} {% if day.date == current_date %}current-day{% endif %}">
+                    <div>{{ day.day }}</div>
+                    <div class="event-count">
+                        {% if day.user_added_events.count > 0 %}
+                            {{ day.user_added_events.count }} events
+                        {% endif %}
                     </div>
-                {% endfor %}
-            </div>
+                    {% for event in day.user_added_events %}
+                        <div class="event-popup">
+                            <strong>{{ event.name }}</strong><br>
+                            <span>{{ event.place }}</span><br>
+                            <a href="{% url 'event_detail' event.id %}">Details</a>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+        </div>
+            
+            
         </div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>

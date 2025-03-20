@@ -731,6 +731,23 @@ h2 {
     </section>
 </div>
 
+<section id="sorted-events">
+    <h2>Highest-Rated Events</h2>
+    <div class="events-grid">
+        {% for event in sorted_events %}
+        <div class="event-card">
+            <a href="{% url 'event_detail' event.id %}">
+            <img src="{{ event.first_photo_url }}" alt="Event Image">
+            <h3>{{ event.name }}</h3>
+            <p>Location: {{ event.place }}</p>
+            <p>Date: {{ event.date }}</p>
+           </a>
+            <button onclick="window.location.href='/login_view/'">Set Reminder</button>
+            <button onclick="window.location.href='/login_view/'">Bookmark</button>
+        </div>
+        {% endfor %}
+    </div>
+</section>
 <section id="upcoming-events">
     <h2>Upcoming Events</h2>
     <div class="events-grid">
@@ -766,18 +783,41 @@ h2 {
         {% endfor %}
     </div>
 </section>
-<!-- Live Streaming -->
+<section id="last-month-events">
+    <h2>Events from Last Month</h2>
+    <div class="events-grid">
+        {% for event in last_month_events %}
+        <div class="event-card">
+            <a href="{% url 'event_detail' event.id %}">
+                <img src="{{ event.first_photo_url }}" alt="{{ event.name }} Image">
+                <h2>{{ event.name }}</h2>
+                <p>Place: {{ event.place }}</p>
+                <p>Date: {{ event.date }}</p>
+            </a>
+            <button onclick="setReminder('{{ event.id }}')">Set Reminder</button>
+            <button onclick="bookmarkEvent('{{ event.id }}', this)">
+                {% if user in event.bookmarked_by.all %}
+                    Unbookmark
+                {% else %}
+                    Bookmark
+                {% endif %}
+            </button>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+<!-- Live Streaming
 <div class="live-stream-section">
     <h2>Live Streaming</h2>
     <iframe class="live-stream-video" src="https://www.youtube.com/embed/live_stream?channel=UCP0uG-mcMImgKnJz-VjJZmQ" allowfullscreen></iframe>
 </div>
 
 <!-- Newsletter Section -->
-<div class="newsletter-section">
+<!-- <div class="newsletter-section">
     <h2>Subscribe to our Newsletter</h2>
     <input type="email" placeholder="Enter your email">
     <button>Subscribe</button>
-</div>
+</div> --> 
 
 
 <!-- Map Section

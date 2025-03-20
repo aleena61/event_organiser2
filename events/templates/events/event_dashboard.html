@@ -25,12 +25,15 @@
         th {
             background-color: #f4f4f4;
         }
+        
         .action-btns a {
             margin-right: 10px;
             text-decoration: none;
             color: white;
             padding: 5px 10px;
             border-radius: 4px;
+           
+            gap: 10px;
         }
         .view-btn { background-color: #007bff; }
         .edit-btn { background-color: #28a745; }
@@ -38,6 +41,21 @@
         canvas {
             margin-top: 20px;
         }
+             /* Dropdown Styling */
+.filter-container {
+    margin-bottom: 20px;
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+.filter-container select {
+    padding: 8px;
+    font-size: 16px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
     </style>
 </head>
 <body>
@@ -62,6 +80,26 @@
         };
     </script>
     <h1>Event Dashboard</h1>
+    <!-- Sorting & Filtering Options -->
+    <div class="filter-container">
+        <label for="statusFilter">Filter by Status:</label>
+        <select id="statusFilter" onchange="filterEvents()">
+            <option value="">All</option>
+            <option value="pending">Pending</option>
+            <option value="approved">Approved</option>
+            <option value="rejected">Rejected</option>
+        </select>
+    
+        <label for="categoryFilter">Filter by Category:</label>
+        <select id="categoryFilter" onchange="filterEvents()">
+            <option value="">All</option>
+            {% for category in categories %}
+            <option value="{{ category.name|lower }}">{{ category.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    
+    
 
     <!-- Events Table -->
     <table>
@@ -69,29 +107,32 @@
             <tr>
                 <th>Event Name</th>
                 <th>Category</th>
-                <th>Visits</th>
                 <th>Actions</th>
+                <th>Visits</th>
             </tr>
         </thead>
-        <tbody>
+        <tbody id="eventsTableBody">
             {% for event in events %}
-            <tr>
+            <tr data-status="{{ event.status|lower }}" 
+                data-category="{% for category in event.category.all %}{{ category.name|lower }}{% if not forloop.last %},{% endif %}{% endfor %}">
                 <td>{{ event.name }}</td>
                 <td>
                     {% for category in event.category.all %}
                         {{ category.name }}{% if not forloop.last %}, {% endif %}
                     {% endfor %}
                 </td>
+                <td>{{ event.status }}</td>
                 <td>{{ event.visits }}</td>
                 <td class="action-btns">
                     <a href="{% url 'event_detail' event.id %}" class="view-btn">View</a>
-                    <a href="{% url 'edit_event' event.id %}" class="edit-btn">Edit Event</a>
-                    <a href="{% url 'delete_event' event.id %}" class="delete-btn">Delete Event</a>
-
+                    <a href="{% url 'edit_event' event.id %}" class="edit-btn">Edit</a>
+                    <a href="{% url 'delete_event' event.id %}" class="delete-btn">Delete</a>
                 </td>
             </tr>
             {% endfor %}
         </tbody>
+        
+        
     </table>
 
     <!-- Bar Graph -->
@@ -161,7 +202,32 @@
                 }
             }
         });
-    </script>
+        
+        
+        
+    function filterEvents() {
+        let statusFilter = document.getElementById('statusFilter').value.toLowerCase();
+        let categoryFilter = document.getElementById('categoryFilter').value.toLowerCase();
+        
+        let rows = document.querySelectorAll("#eventsTableBody tr");
+
+        rows.forEach(row => {
+            let eventStatus = row.getAttribute("data-status").toLowerCase();
+            let eventCategories = row.getAttribute("data-category").toLowerCase().split(","); // Splitting multiple categories
+
+            let statusMatch = (statusFilter === "" || eventStatus === statusFilter);
+            let categoryMatch = (categoryFilter === "" || eventCategories.includes(categoryFilter));
+
+            if (statusMatch && categoryMatch) {
+                row.style.display = "";
+            } else {
+                row.style.display = "none";
+            }
+        });
+    }
+</script>
+
+
     
 </body>
 </html>

@@ -18,7 +18,7 @@ from django.http import Http404, JsonResponse
 from datetime import datetime,timedelta, timezone
 from django.core.mail import send_mail
 from django.db.models import Sum, Count
-from .models import Notification, Event
+from .models import Notification, Event,Rating
 from django.utils import timezone
 import random
 import string
@@ -37,8 +37,18 @@ from django.db.models import Sum
 
 def event_dashboard(request):
     # Retrieve all events created by the logged-in user
-    user_events = Event.objects.filter(user=request.user)
-
+    user_events = Event.objects.filter(user=request.user).prefetch_related('category')
+    
+    # Get filtering parameters from request
+    status_filter = request.GET.get('status', '')  # Get status filter from URL params
+    category_filter = request.GET.get('category', '')  # Get category filter from URL params
+   
+    # Apply filtering if selected
+    if status_filter:
+        user_events = user_events.filter(status=status_filter)
+    
+    if category_filter:
+        user_events = user_events.filter(category__id=category_filter)
     # Retrieve data for the bar graph (event names and total visits)
     event_visits = (
         user_events.values('name')  # Group by event name
@@ -46,19 +56,18 @@ def event_dashboard(request):
         .order_by('name')  # Order by event name
     )
 
+    categories = Category.objects.all()  # Fetch all categories for dropdown
+
     context = {
         'events': user_events,
-        'event_visits': list(event_visits),  # Convert QuerySet to list for JSON serialization
+        'event_visits': list(event_visits),
+        'categories':categories,  # Convert QuerySet to list for JSON serialization
     }
 
     return render(request, 'events/event_dashboard.html', context)
 
 
-def delete_event(request, event_id):
-    # Delete an event by ID
-    event = get_object_or_404(Event, id=event_id, created_by=request.user)
-    event.delete()
-    return redirect('event_dashboard')
+
 
 # def calendar_view(request):
   
@@ -109,54 +118,48 @@ def delete_event(request, event_id):
 #     })
 
 
-from datetime import datetime, timedelta
 from django.shortcuts import render
-from .models import Event
+from datetime import datetime, timedelta
+from .models import Event, UserAddedEvent
 
 def calendar_view(request):
     current_date = datetime.now()
     current_month = current_date.month
     current_year = current_date.year
 
-    # Handle month and year query parameters to select any month/year
-    month = request.GET.get('month', current_month)
-    year = request.GET.get('year', current_year)
+    month = int(request.GET.get('month', current_month))
+    year = int(request.GET.get('year', current_year))
 
-    # Ensure month and year are integers
-    month = int(month)
-    year = int(year)
-
-    # Calculate the first and last day of the selected month
     first_day_of_month = datetime(year, month, 1)
+    last_day_of_month = datetime(year, month + 1, 1) - timedelta(days=1)
 
-    if month == 12:
-        last_day_of_month = datetime(year + 1, 1, 1) - timedelta(days=1)
-    else:
-        last_day_of_month = datetime(year, month + 1, 1) - timedelta(days=1)
-
-    # Get all events in the current month
     events_in_month = Event.objects.filter(date__range=[first_day_of_month, last_day_of_month])
 
-    # Structure the calendar days with events
+    user_added_events = []
+    if request.user.is_authenticated:
+        user_added_events = UserAddedEvent.objects.filter(user=request.user, event__date__range=[first_day_of_month, last_day_of_month])
+
     days_in_month = []
     for day in range(1, last_day_of_month.day + 1):
-        date = datetime(year, month, day)
-        day_events = events_in_month.filter(date=date)
+        date = datetime(year, month, day).date()  # Convert datetime to date for correct comparison
+
+        # Ensure we compare only the date part
+        day_events = [event for event in events_in_month if event.date == date]
+        user_day_events = [user_event for user_event in user_added_events if user_event.event.date == date]
+
+
         days_in_month.append({
-            'day': day,
-            'events': day_events,
-            'date': date,
+            "day": day,
+            "date": date,
+            "events": day_events,
+            "user_added_events": user_day_events,
         })
 
-    prev_year = current_year - 1
-    next_year = current_year + 1
-
     return render(request, 'events/calendar.html', {
-        'days_in_month': days_in_month,
-        'current_month': month,
-        'current_year': year,
-        'prev_year': prev_year,
-        'next_year': next_year,
+        "current_month": current_month,
+        "current_year": current_year,
+        "days_in_month": days_in_month,
+        "current_date": current_date.date(),
     })
 
 
@@ -288,6 +291,9 @@ def home(request):
     # Ongoing events (happening today or between start and end date)
     ongoing_events = events.filter(date__lte=today, end_date__gte=today)
 
+     # Sort events from highest to lowest rating
+    sorted_events = sorted(events, key=lambda e: e.ratings.aggregate(avg=Avg('rating'))['avg'] or 0, reverse=True)
+
     # Pass both lists to the template
     return render(request, 'events/home.html', {
         'events': events,
@@ -297,6 +303,8 @@ def home(request):
         'ongoing_events': ongoing_events,
         'user_lat': user_lat,
         'user_lon': user_lon,
+        'last_month_events':last_month_events,
+        'sorted_events':sorted_events,
     })
 
 def event_detail(request, event_id):
@@ -312,8 +320,14 @@ def event_detail(request, event_id):
         event_user, created = EventUser.objects.get_or_create(user=user, event=event)
         event_user.visited = True
         event_user.save()
+        
+        # Retrieve the user's rating for the event
+        rating_obj = Rating.objects.filter(user=user, event=event).first()
+        user_rating = rating_obj.rating if rating_obj else 0
+    else:
+        user_rating = 0  # Default rating for unauthenticated users
 
-
+    event.save()
 
     # Get related event photos, old photos, and competitions
     event_photos = event.photos.all()
@@ -329,6 +343,8 @@ def event_detail(request, event_id):
         'old_photos': old_photos,
         'competitions': competitions,
         'categories': categories,
+        'user_rating':user_rating,
+        'star_range':range(1,6),
     })
 
 
@@ -553,6 +569,8 @@ def profile_view(request):
         ).order_by('-date')[:6]
     except:
         recently_visited_events = None
+     # Sort events from highest to lowest rating
+    sorted_events = sorted(current_future_events, key=lambda e: e.ratings.aggregate(avg=Avg('rating'))['avg'] or 0, reverse=True)
     
     context = {
         'events': current_future_events,
@@ -566,6 +584,7 @@ def profile_view(request):
         'recently_visited_events': recently_visited_events,
         'user_latitude': user_latitude,
         'user_longitude': user_longitude,
+        'sorted_events':sorted_events,
     }
     
     return render(request, 'events/profile.html', context)
@@ -625,7 +644,13 @@ from .models import Event, EventPhoto, OldPhoto, Competition
 
 @login_required
 def edit_event(request, event_id):
+    print("Edit event view called")
     event = get_object_or_404(Event, id=event_id, user=request.user)
+    categories = Category.objects.all()  # ✅ Fetch all categories
+    competitions = Competition.objects.filter(event=event)
+    event_photos = EventPhoto.objects.filter(event=event)
+    old_photos = OldPhoto.objects.filter(event=event)
+
 
     if request.method == 'POST':
         print("POST request received")
@@ -650,6 +675,11 @@ def edit_event(request, event_id):
             
             # Handle competitions
             competitions_data = request.POST.getlist('competitions[][name]')
+            competition_ids = request.POST.getlist('competitions[][id]')
+            competition_dates = request.POST.getlist('competitions[][date]')
+            competition_places = request.POST.getlist('competitions[][place]')
+            competition_descriptions = request.POST.getlist('competitions[][description]')
+            competition_categories = request.POST.getlist('competitions[][category]')
             if competitions_data:
                 # Delete competitions marked for deletion
                 delete_competitions = request.POST.getlist('delete_competition')
@@ -667,16 +697,29 @@ def edit_event(request, event_id):
                         competition.date = request.POST.getlist('competitions[][date]')[i]
                         competition.place = request.POST.getlist('competitions[][place]')[i]
                         competition.description = request.POST.getlist('competitions[][description]')[i]
+
+                        # Set category
+                        # Set category properly (ManyToManyField)
+                    category_id = competition_categories[i] if i < len(competition_categories) else None
+                    if category_id:
+                        category = Category.objects.filter(id=category_id)  # Queryset for ManyToMany
+                        competition.category.set(category)  # Correctly set categories for ManyToMany
                         competition.save()
+
                     else:
+                            # Create a new competition
+                        category_id = competition_categories[i] if i < len(competition_categories) else None
+                        category = get_object_or_404(Category, id=category_id) if category_id else None
                         # Create new competition
                         competition = Competition.objects.create(
                             event=event,
                             name=competitions_data[i],
                             date=request.POST.getlist('competitions[][date]')[i],
                             place=request.POST.getlist('competitions[][place]')[i],
-                            description=request.POST.getlist('competitions[][description]')[i]
+                            description=request.POST.getlist('competitions[][description]')[i],
+                            category=category
                         )
+                        competition.save()
             
             # Handle photos
             event_photos = request.FILES.getlist('event_photos')
@@ -709,6 +752,10 @@ def edit_event(request, event_id):
         'event_form': event_form,
         'competition_form': competition_form,
         'event': event,
+        'categories': categories,
+        'competitions': competitions,
+        'event_photos': event_photos,
+        'old_photos': old_photos,
     })
 
 
@@ -1221,7 +1268,89 @@ def reset_password(request, email):
             return redirect('forgot_password')
     
     return render(request, 'events/reset_password.html', {'email': email})
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
+from django.db.models import Avg
+import traceback
 
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
+from django.db.models import Avg
+import traceback
 
+def rate_event(request, event_id):
+    if request.method == "POST" and request.user.is_authenticated:
+        try:
+            event = get_object_or_404(Event, id=event_id)
+            rating_value = request.POST.get("rating")
 
+            print(f"🟢 Received rating from frontend: {rating_value}")  # Debugging
+
+            if not rating_value:
+                print("❌ ERROR: No rating value received.")
+                return JsonResponse({"success": False, "error": "Rating value is missing"}, status=400)
+
+            try:
+                rating_value = int(rating_value)
+                if not (1 <= rating_value <= 5):
+                    raise ValueError
+            except ValueError:
+                print(f"❌ ERROR: Invalid rating value: {rating_value}")
+                return JsonResponse({"success": False, "error": "Invalid rating value"}, status=400)
+
+            # Get or create a Rating object
+            rating, created = Rating.objects.get_or_create(user=request.user, event=event)
+
+            print(f"🟢 Rating object {'created' if created else 'retrieved'} successfully")
+
+            # Explicitly set `rating` before saving
+            rating.rating = rating_value
+            rating.save()
+
+            print(f"✅ Successfully saved rating: {rating_value}")
+
+            # Update event's average rating
+            avg_rating = event.ratings.aggregate(Avg("rating"))["rating__avg"] or 0.0
+            event.average_rating = avg_rating
+            event.save()
+
+            print(f"✅ Event's new average rating: {round(avg_rating, 1)}")
+
+            return JsonResponse({
+                "success": True,
+                "average_rating": round(avg_rating, 1)
+            })
+
+        except Exception as e:
+            print(f"❌ ERROR: {str(e)}")  # Print full error in the terminal
+            return JsonResponse({"success": False, "error": "Internal Server Error"}, status=500)
+
+    return JsonResponse({"success": False, "error": "Invalid request"}, status=400)
+
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+import json
+from .models import Event, UserAddedEvent
+
+@csrf_exempt  # Only for development; use proper CSRF handling in production
+def set_reminder(request):
+    if request.method == "POST":
+        if not request.user.is_authenticated:
+            return JsonResponse({"success": False, "error": "User not logged in"})
+
+        data = json.loads(request.body)
+        event_id = data.get("event_id")
+
+        try:
+            event = Event.objects.get(id=event_id)
+            # Check if event is already in the user's added events
+            user_event, created = UserAddedEvent.objects.get_or_create(user=request.user, event=event)
+            if created:
+                return JsonResponse({"success": True})
+            else:
+                return JsonResponse({"success": False, "error": "Event already added"})
+        except Event.DoesNotExist:
+            return JsonResponse({"success": False, "error": "Event not found"})
+    
+    return JsonResponse({"success": False, "error": "Invalid request"})
 

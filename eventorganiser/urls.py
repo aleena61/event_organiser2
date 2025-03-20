@@ -38,6 +38,9 @@ urlpatterns = [
     path('forgot-password/', views.forgot_password, name='forgot_password'),
     path('verify-otp/<str:email>/', views.verify_otp, name='verify_otp'),
     path('reset-password/<str:email>/', views.reset_password, name='reset_password'),
+
+    path('event/<int:event_id>/rate/', views.rate_event, name='rate_event'),
+    path('set-reminder/', views.set_reminder, name='set_reminder'), 
 ]
 
 if settings.DEBUG:
